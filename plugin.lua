@@ -128,6 +128,10 @@ end
 
 function ImportLPCCharacterDialog(args)
     local sheet = app.image
+    if not sheet then
+        app.alert("No file open.")
+        return
+    end
     if sheet.height < NormalSheetHeight or sheet.width < NormalSheetWidth then
         app.alert("Too small.")
         return
