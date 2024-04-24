@@ -6,4 +6,5 @@
         "init",
         "exit"
     ],
+    "Lua.runtime.version" : "Lua 5.3"
 }
