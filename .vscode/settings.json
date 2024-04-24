@@ -1,0 +1,9 @@
+{
+    "Lua.workspace.library": [
+        "${3rd}/Aseprite/library"
+    ],
+    "Lua.diagnostics.globals" : [
+        "init",
+        "exit"
+    ],
+}
