@@ -226,7 +226,7 @@ function init(plugin)
     plugin:newCommand({
         id="ImportLPCCharacter",
         title="Import LPC Character",
-        group="file_import",
+        group="file_import_1",
         onclick=function()
             ImportLPCCharacterDialog(args)
         end
