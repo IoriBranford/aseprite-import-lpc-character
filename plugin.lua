@@ -15,7 +15,7 @@ local Animations = {
     Walk = { s = 64, x = 64, y = 512, w = 512, h = 256 },
     Swing = { s = 64, x = 0, y = 768, w = 384, h = 256, parts = { Windup = { 0, 2 }, Attack = { 3, 5 } } },
     Shoot = { s = 64, x = 0, y = 1024, w = 832, h = 256, parts = { Windup = { 0, 8 }, Attack = { 9, 11 } } },
-    Fall = { s = 64, x = 0, y = 1280, w = 384, h = 64, parts = { Knees = { 0, 2 }, Flat = { 3, 5 } } },
+    Fall = { s = 64, x = 0, y = 1280, w = 384, h = 64, parts = { Knees = { 0, 2 }, Flat = { 3, 5 }, RiseToFeet = { 5, 0 }, RiseToKnees = { 5, 3 } } },
 }
 
 ---@class ImportLPCCharacterArgs
@@ -86,7 +86,14 @@ function ImportLPCCharacter(t)
         if parts then
             for part, range in pairs(parts) do
                 if enabled[name..part] then
+                    local from, to = range[1], range[2]
+                    local direction
+                    if to < from then
+                        direction = AniDir.REVERSE
+                        from, to = to, from
+                    end
                     tag = sprite:newTag(fromFrameNumber + range[1], fromFrameNumber + range[2])
+                    tag.anidir = direction
                     tag.name = name..part..dir
                 end
             end
