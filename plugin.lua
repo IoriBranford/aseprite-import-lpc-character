@@ -10,12 +10,33 @@
 local Animations = {
     "Stand", "Walk", "Fall", "Swing", "Thrust", "Shoot", "Cast",
     Cast = { s = 64, x = 0, y = 0, w = 448, h = 256 },
-    Thrust = { s = 64, x = 0, y = 256, w = 512, h = 256, parts = { Windup = { 0, 3 }, Attack = { 4, 7 } } },
+    Thrust = { s = 64, x = 0, y = 256, w = 512, h = 256,
+        parts = {
+            "Windup", "Attack",
+            Windup = { 0, 3 },
+            Attack = { 4, 7 }
+        }
+    },
     Stand = { s = 64, x = 0, y = 512, w = 64, h = 256 },
     Walk = { s = 64, x = 64, y = 512, w = 512, h = 256 },
-    Swing = { s = 64, x = 0, y = 768, w = 384, h = 256, parts = { Windup = { 0, 2 }, Attack = { 3, 5 } } },
-    Shoot = { s = 64, x = 0, y = 1024, w = 832, h = 256, parts = { Windup = { 0, 8 }, Attack = { 9, 11 } } },
-    Fall = { s = 64, x = 0, y = 1280, w = 384, h = 64, parts = { Knees = { 0, 2 }, Flat = { 3, 5 }, RiseToFeet = { 5, 0 }, RiseToKnees = { 5, 3 } } },
+    Swing = { s = 64, x = 0, y = 768, w = 384, h = 256,
+        parts = {
+            "Windup", "Attack",
+            Windup = { 0, 2 }, Attack = { 3, 5 }
+        }
+    },
+    Shoot = { s = 64, x = 0, y = 1024, w = 832, h = 256,
+        parts = {
+            "Windup", "Attack",
+            Windup = { 0, 8 }, Attack = { 9, 11 }
+        }
+    },
+    Fall = { s = 64, x = 0, y = 1280, w = 384, h = 64,
+        parts = {
+            "Knees", "Flat", "RiseToKnees", "RiseToFeet",
+            Knees = { 0, 2 }, Flat = { 3, 5 }, RiseToFeet = { 5, 0 }, RiseToKnees = { 5, 3 }
+        }
+    },
 }
 
 ---@class ImportLPCCharacterArgs
@@ -86,8 +107,9 @@ function ImportLPCCharacter(t)
 
         local parts = animation.parts
         if parts then
-            for part, range in pairs(parts) do
+            for _, part in ipairs(parts) do
                 if enabled[name..part] then
+                    local range = parts[part]
                     local from, to = range[1], range[2]
                     local direction
                     if to < from then
@@ -189,7 +211,7 @@ function ImportLPCCharacterDialog(args)
         local animation = Animations[name]
         local parts = animation.parts
         if parts then
-            for part in pairs(parts) do
+            for _, part in ipairs(parts) do
                 enableAnimation(name..part)
             end
         end
@@ -212,7 +234,7 @@ function ImportLPCCharacterNewArgs()
         local animation = Animations[name]
         local parts = animation.parts
         if parts then
-            for part in pairs(parts) do
+            for _, part in ipairs(parts) do
                 animationsEnabled[name..part] = true
             end
         end
