@@ -195,24 +195,41 @@ function ImportLPCCharacterDialog(args)
     dialog:separator({
         text = "Animations"
     })
-    local function enableAnimation(name)
+
+    local function setAnimationEnabled(name, enabled)
+        args.animationsEnabled[name] = enabled
+
+        local animation = Animations[name]
+        local parts = animation and animation.parts
+        if parts then
+            for _, part in ipairs(parts) do
+                dialog:modify({
+                    id = "check"..name..part,
+                    enabled = enabled
+                })
+            end
+        end
+    end
+
+    local function animationCheckbox(name)
         dialog:check({
             id = "check"..name,
             text = name,
             selected = args.animationsEnabled[name],
             onclick = function()
-                args.animationsEnabled[name] = dialog.data["check"..name]
+                setAnimationEnabled(name, dialog.data["check"..name])
             end
         })
     end
+
     for _, name in ipairs(Animations) do
-        enableAnimation(name)
+        animationCheckbox(name)
 
         local animation = Animations[name]
         local parts = animation.parts
         if parts then
             for _, part in ipairs(parts) do
-                enableAnimation(name..part)
+                animationCheckbox(name..part)
             end
         end
         dialog:newrow()
@@ -224,7 +241,12 @@ function ImportLPCCharacterDialog(args)
             dialog:close()
         end
     })
-    dialog:show()
+
+    for _, name in ipairs(Animations) do
+        setAnimationEnabled(name, args.animationsEnabled[name])
+    end
+
+    dialog:show({wait = true})
 end
 
 function ImportLPCCharacterNewArgs()
