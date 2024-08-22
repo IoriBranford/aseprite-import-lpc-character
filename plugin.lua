@@ -140,7 +140,7 @@ function ImportLPCCharacterDialog(args)
         return
     end
     if sheet.height < NormalSheetHeight or sheet.width < NormalSheetWidth then
-        app.alert("Too small.")
+        app.alert("Too small. Expected "..NormalSheetWidth.."x"..NormalSheetHeight)
         return
     end
 
