@@ -37,7 +37,7 @@ function ImportLPCCharacter(t)
     -- local HugeSpriteSize = 192
     -- local HugeSheetHeight = 3648
 
-    local spriteSize = t.size
+    local outputFrameSize = t.size
 
     -- if sheet.height >= HugeSheetHeight then
     --     spriteSize = HugeSpriteSize
@@ -58,15 +58,17 @@ function ImportLPCCharacter(t)
 
     local frameDuration = t.frametime
     local enabled = t.animationsEnabled
-    local sprite = Sprite(spriteSize, spriteSize)
+    local sprite = Sprite(outputFrameSize, outputFrameSize)
     sprite.filename = t.filename
     local layer = sprite.layers[1]
     local frames = sprite.frames
 
+    ---@param animation LPCAnimation
     local function importAnimation(name, animation, row, dir)
-        local columns = math.floor(animation.w / animation.s)
-        local sourceRect = Rectangle(animation.x, animation.y + row*animation.s, animation.s, animation.s)
-        local dest = Point(spriteSize/2 - animation.s/2, spriteSize/2 - animation.s/2)
+        local sourceFrameSize = animation.s
+        local columns = math.floor(animation.w / sourceFrameSize)
+        local sourceRect = Rectangle(animation.x, animation.y + row*sourceFrameSize, sourceFrameSize, sourceFrameSize)
+        local dest = Point(outputFrameSize/2 - sourceFrameSize/2, outputFrameSize/2 - sourceFrameSize/2)
         local fromFrameNumber = #frames
         local toFrameNumber = #frames + columns - 1
         for _ = 1, columns do
@@ -75,7 +77,7 @@ function ImportLPCCharacter(t)
             local image = Image(sheet, sourceRect)
             sprite:newCel(layer, frame, image, dest)
 
-            sourceRect.x = sourceRect.x + animation.s
+            sourceRect.x = sourceRect.x + sourceFrameSize
             sprite:newEmptyFrame()
         end
 
@@ -116,16 +118,16 @@ function ImportLPCCharacter(t)
         end
 
         local extraheight = sheet.height - NormalSheetHeight
-        if extraheight >= spriteSize then
+        if extraheight >= outputFrameSize then
             ---@type LPCAnimation
             local extraAnimation = {
-                s = spriteSize,
+                s = outputFrameSize,
                 x = 0,
                 y = NormalSheetHeight,
                 w = sheet.width,
                 h = extraheight
             }
-            local extrarows = math.floor(extraheight / spriteSize)
+            local extrarows = math.floor(extraheight / outputFrameSize)
             for i = 0, extrarows-1 do
                 importAnimation("extra", extraAnimation, i, i)
             end
