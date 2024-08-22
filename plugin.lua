@@ -95,7 +95,7 @@ function ImportLPCCharacter(t)
                         from, to = to, from
                     end
                     tag = sprite:newTag(fromFrameNumber + range[1], fromFrameNumber + range[2])
-                    tag.anidir = direction
+                    tag.aniDir = direction
                     tag.name = name..part..dir
                 end
             end
