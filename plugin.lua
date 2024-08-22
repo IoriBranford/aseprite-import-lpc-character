@@ -8,7 +8,11 @@
 
 ---@type {[string]:LPCAnimation,[integer]:string}
 local Animations = {
-    "Stand", "Walk", "Fall", "Swing", "Thrust", "Shoot", "Cast",
+    "Stand", "Idle",
+    "Walk", "Run", "Climb", "Jump", "Fall",
+    "Sit", "Emote",
+    "Swing", "Thrust", "Shoot", "Cast", "Swing1Hand", "Thrust1Hand",
+
     Cast = { s = 64, x = 0, y = 0, w = 448, h = 256 },
     Thrust = { s = 64, x = 0, y = 256, w = 512, h = 256,
         parts = {
@@ -37,6 +41,49 @@ local Animations = {
             Knees = { 0, 2 }, Flat = { 3, 5 }, RiseToFeet = { 5, 0 }, RiseToKnees = { 5, 3 }
         }
     },
+
+    Climb = { s = 64, x = 0, y = 1344, w = 384, h = 64},
+    Idle = { s = 64, x = 0, y = 1408, w = 256, h = 256,
+        parts = {
+            "Calm", "Combat",
+            Calm = {0, 1},
+            Combat = {2, 3}
+        }
+    },
+    Jump = { s = 64, x = 0, y = 1664, w = 320, h = 256},
+    Sit = { s = 64, x = 0, y = 1920, w = 192, h = 256,
+        parts = {
+            "GroundMasc", "GroundFem", "Chair",
+            GroundMasc = {0, 0},
+            GroundFem = {1, 1},
+            Chair = {2, 2}
+        }
+    },
+    Emote = { s = 64, x = 192, y = 1920, w = 192, h = 256,
+        parts = {
+            "HandsOnHips", "HandsBehindBack", "Surprised",
+            HandsOnHips = {0, 0},
+            HandsBehindBack = {1, 1},
+            Surprised = {2, 2}
+        }
+    },
+    Run = { s = 64, x = 0, y = 2176, w = 512, h = 256 },
+    Swing1Hand = { s = 64, x = 0, y = 2432, w = 832, h = 256,
+        parts = {
+            "Windup", "Attack", "BackWindup", "BackAttack",
+            Windup = { 0, 0 },
+            Attack = { 1, 5 },
+            BackWindup = { 6, 7 },
+            BackAttack = { 8, 12 }
+        }
+    },
+    Thrust1Hand = { s = 64, x = 0, y = 2688, w = 384, h = 256,
+        parts = {
+            "Windup", "Attack",
+            Windup = { 0, 0 },
+            Attack = { 1, 5 }
+        }
+    },
 }
 
 ---@class ImportLPCCharacterArgs
@@ -47,7 +94,7 @@ local Animations = {
 ---@field animationsEnabled {[string]:boolean}
 
 local NormalSheetWidth = 832
-local NormalSheetHeight = 1344
+local NormalSheetHeight = 2944
 
 ---@param t ImportLPCCharacterArgs
 function ImportLPCCharacter(t)
