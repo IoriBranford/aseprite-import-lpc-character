@@ -4,14 +4,15 @@
 ---@field y integer
 ---@field w integer
 ---@field h integer
+---@field columns integer?
+---@field rows integer?
 ---@field parts {[string]: integer[]}?
 
 ---@type {[string]:LPCAnimation,[integer]:string}
 local Animations = {
-    "Stand", "Idle",
-    "Walk", "Run", "Climb", "Jump", "Fall",
-    "Sit", "Emote",
-    "Swing", "Thrust", "Shoot", "Cast", "Swing1Hand", "Thrust1Hand",
+    "Stand", "Walk", "Fall", "Swing", "Thrust", "Shoot", "Cast",
+    "Idle", "Run", "Climb", "Jump", "Sit", "Emote",
+    "Swing1Hand", "Thrust1Hand",
 
     Cast = { s = 64, x = 0, y = 0, w = 448, h = 256 },
     Thrust = { s = 64, x = 0, y = 256, w = 512, h = 256,
@@ -86,12 +87,31 @@ local Animations = {
     },
 }
 
+for _, name in ipairs(Animations) do
+    local animation = Animations[name]
+    animation.columns = math.floor(animation.w / animation.s)
+    animation.rows = math.floor(animation.h / animation.s)
+end
+
+local function animationRowFramesInSheet(animation, row, sheet)
+    local sourceFrameSize = animation.s
+
+    local sourceY = animation.y + row*sourceFrameSize
+    local maxY = sheet.height - sourceFrameSize
+    if sourceY > maxY then
+        return 0
+    end
+
+    local width = math.min(animation.w, sheet.width - animation.x)
+    return math.floor(width / sourceFrameSize)
+end
+
 ---@class ImportLPCCharacterArgs
 ---@field sheet Image
 ---@field filename string
 ---@field frametime number in seconds
 ---@field size integer
----@field animationsEnabled {[string]:boolean}
+---@field animationsExportEnabled {[string]:boolean}
 
 local NormalSheetWidth = 832
 local NormalSheetHeight = 2944
@@ -125,7 +145,7 @@ function ImportLPCCharacter(t)
     -- end
 
     local frameDuration = t.frametime
-    local enabled = t.animationsEnabled
+    local enabled = t.animationsExportEnabled
     local sprite = Sprite(outputFrameSize, outputFrameSize)
     sprite.filename = t.filename
     local layer = sprite.layers[1]
@@ -134,17 +154,20 @@ function ImportLPCCharacter(t)
     ---@param animation LPCAnimation
     local function importAnimation(name, animation, row, dir)
         local sourceFrameSize = animation.s
-        local columns = math.floor(animation.w / sourceFrameSize)
+        local columns = animation.columns
+        local maxX = sheet.width - sourceFrameSize
+        local maxY = sheet.height - sourceFrameSize
         local sourceRect = Rectangle(animation.x, animation.y + row*sourceFrameSize, sourceFrameSize, sourceFrameSize)
         local dest = Point(outputFrameSize/2 - sourceFrameSize/2, outputFrameSize/2 - sourceFrameSize/2)
         local fromFrameNumber = #frames
         local toFrameNumber = #frames + columns - 1
         for _ = 1, columns do
-            local frame = frames[#frames]
-            frame.duration = frameDuration
-            local image = Image(sheet, sourceRect)
-            sprite:newCel(layer, frame, image, dest)
-
+            if sourceRect.x <= maxX and sourceRect.y <= maxY then
+                local frame = frames[#frames]
+                frame.duration = frameDuration
+                local image = Image(sheet, sourceRect)
+                sprite:newCel(layer, frame, image, dest)
+            end
             sourceRect.x = sourceRect.x + sourceFrameSize
             sprite:newEmptyFrame()
         end
@@ -174,8 +197,8 @@ function ImportLPCCharacter(t)
     app.transaction("Import LPC Character", function()
         for _, basename in ipairs(Animations) do
             local animation = Animations[basename]
-            if enabled[basename] then
-                local rows = math.floor(animation.h / animation.s)
+            if enabled[basename] and animationRowFramesInSheet(animation, 0, sheet) > 0 then
+                local rows = animation.rows
                 if rows <= 1 then
                     importAnimation(basename, animation, 0, "")
                 else
@@ -210,8 +233,8 @@ function ImportLPCCharacterDialog(args)
         app.alert("No file open.")
         return
     end
-    if sheet.height < NormalSheetHeight or sheet.width < NormalSheetWidth then
-        app.alert("Too small. Expected "..NormalSheetWidth.."x"..NormalSheetHeight)
+    if sheet.height < 64 or sheet.width < 64 then
+        app.alert("File too small to hold any frames (min 64x64).")
         return
     end
 
@@ -243,9 +266,7 @@ function ImportLPCCharacterDialog(args)
         text = "Animations"
     })
 
-    local function setAnimationEnabled(name, enabled)
-        args.animationsEnabled[name] = enabled
-
+    local function setAnimationPartsCheckboxesEnabled(name, enabled)
         local animation = Animations[name]
         local parts = animation and animation.parts
         if parts then
@@ -258,13 +279,18 @@ function ImportLPCCharacterDialog(args)
         end
     end
 
+    local function setAnimationExportEnabled(name, enabled)
+        args.animationsExportEnabled[name] = enabled
+        setAnimationPartsCheckboxesEnabled(name, enabled)
+    end
+
     local function animationCheckbox(name)
         dialog:check({
             id = "check"..name,
             text = name,
-            selected = args.animationsEnabled[name],
+            selected = args.animationsExportEnabled[name],
             onclick = function()
-                setAnimationEnabled(name, dialog.data["check"..name])
+                setAnimationExportEnabled(name, dialog.data["check"..name])
             end
         })
     end
@@ -290,28 +316,34 @@ function ImportLPCCharacterDialog(args)
     })
 
     for _, name in ipairs(Animations) do
-        setAnimationEnabled(name, args.animationsEnabled[name])
+        setAnimationExportEnabled(name, args.animationsExportEnabled[name])
+        local checkboxEnabled = animationRowFramesInSheet(Animations[name], 0, sheet) > 0
+        dialog:modify({
+            id = "check"..name,
+            enabled = checkboxEnabled
+        })
+        setAnimationPartsCheckboxesEnabled(name, checkboxEnabled)
     end
 
     dialog:show({wait = true})
 end
 
 function ImportLPCCharacterNewArgs()
-    local animationsEnabled = {}
+    local animationsExportEnabled = {}
     for _, name in ipairs(Animations) do
-        animationsEnabled[name] = true
+        animationsExportEnabled[name] = true
         local animation = Animations[name]
         local parts = animation.parts
         if parts then
             for _, part in ipairs(parts) do
-                animationsEnabled[name..part] = true
+                animationsExportEnabled[name..part] = true
             end
         end
     end
     return {
         frametime = .05,
         size = 64,
-        animationsEnabled = animationsEnabled
+        animationsExportEnabled = animationsExportEnabled
     }
 end
 
