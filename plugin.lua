@@ -211,15 +211,19 @@ function ImportLPCCharacter(t)
 
         local extraheight = sheet.height - NormalSheetHeight
         if extraheight >= outputFrameSize then
+            local extrarows = math.floor(extraheight / outputFrameSize)
+            local extracolumns = math.floor(sheet.width / outputFrameSize)
+
             ---@type LPCAnimation
             local extraAnimation = {
                 s = outputFrameSize,
                 x = 0,
                 y = NormalSheetHeight,
-                w = sheet.width,
-                h = extraheight
+                w = extracolumns*outputFrameSize,
+                h = extrarows*outputFrameSize,
+                rows = extrarows,
+                columns = extracolumns
             }
-            local extrarows = math.floor(extraheight / outputFrameSize)
             for i = 0, extrarows-1 do
                 importAnimation("extra", extraAnimation, i, i)
             end
