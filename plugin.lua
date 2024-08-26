@@ -320,13 +320,14 @@ function ImportLPCCharacterDialog(args)
     })
 
     for _, name in ipairs(Animations) do
-        setAnimationExportEnabled(name, args.animationsExportEnabled[name])
+        local exportEnabled = args.animationsExportEnabled[name]
+        setAnimationExportEnabled(name, exportEnabled)
         local checkboxEnabled = animationRowFramesInSheet(Animations[name], 0, sheet) > 0
         dialog:modify({
             id = "check"..name,
             enabled = checkboxEnabled
         })
-        setAnimationPartsCheckboxesEnabled(name, checkboxEnabled)
+        setAnimationPartsCheckboxesEnabled(name, exportEnabled and checkboxEnabled)
     end
 
     dialog:show({wait = true})
