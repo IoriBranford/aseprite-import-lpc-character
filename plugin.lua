@@ -232,7 +232,7 @@ function ImportLPCCharacter(t)
 end
 
 function ImportLPCCharacterDialog(args)
-    local sheet = app.image
+    local sheet = app.sprite
     if not sheet then
         app.alert("No file open.")
         return
@@ -244,7 +244,7 @@ function ImportLPCCharacterDialog(args)
 
     local filename = app.fs.filePathAndTitle(app.sprite.filename)..".ase"
 
-    args.sheet = app.image
+    args.sheet = Image(sheet)
     args.filename = filename
 
     local dialog = Dialog("Import LPC Character")
