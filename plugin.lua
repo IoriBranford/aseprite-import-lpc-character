@@ -11,8 +11,8 @@
 ---@type {[string]:LPCAnimation,[integer]:string}
 local Animations = {
     "Stand", "Walk", "Fall", "Swing", "Thrust", "Shoot", "Cast",
-    "Idle", "Run", "Climb", "Jump", "Sit", "Emote",
-    "Swing1Hand", "Thrust1Hand",
+    "IdleCalm", "Run", "Climb", "Jump", "Sit", "Emote",
+    "IdleCombat", "Swing1Hand", "Thrust1Hand",
 
     Cast = { s = 64, x = 0, y = 0, w = 448, h = 256 },
     Thrust = { s = 64, x = 0, y = 256, w = 512, h = 256,
@@ -44,13 +44,7 @@ local Animations = {
     },
 
     Climb = { s = 64, x = 0, y = 1344, w = 384, h = 64},
-    Idle = { s = 64, x = 0, y = 1408, w = 256, h = 256,
-        parts = {
-            "Calm", "Combat",
-            Calm = {0, 1},
-            Combat = {2, 3}
-        }
-    },
+    IdleCalm = { s = 64, x = 0, y = 1408, w = 128, h = 256 },
     Jump = { s = 64, x = 0, y = 1664, w = 320, h = 256},
     Sit = { s = 64, x = 0, y = 1920, w = 192, h = 256,
         parts = {
@@ -60,7 +54,7 @@ local Animations = {
             Chair = {2, 2}
         }
     },
-    Emote = { s = 64, x = 192, y = 1920, w = 192, h = 256,
+    Emote = { s = 64, x = 0, y = 2176, w = 192, h = 256,
         parts = {
             "HandsOnHips", "HandsBehindBack", "Surprised",
             HandsOnHips = {0, 0},
@@ -68,8 +62,9 @@ local Animations = {
             Surprised = {2, 2}
         }
     },
-    Run = { s = 64, x = 0, y = 2176, w = 512, h = 256 },
-    Swing1Hand = { s = 64, x = 0, y = 2432, w = 832, h = 256,
+    Run = { s = 64, x = 0, y = 2432, w = 512, h = 256 },
+    IdleCombat = { s = 64, x = 0, y = 2688, w = 128, h = 256 },
+    Swing1Hand = { s = 64, x = 0, y = 2944, w = 832, h = 256,
         parts = {
             "Windup", "Attack", "BackWindup", "BackAttack",
             Windup = { 0, 0 },
@@ -78,7 +73,7 @@ local Animations = {
             BackAttack = { 8, 12 }
         }
     },
-    Thrust1Hand = { s = 64, x = 0, y = 2688, w = 384, h = 256,
+    Thrust1Hand = { s = 64, x = 0, y = 3200, w = 384, h = 256,
         parts = {
             "Windup", "Attack",
             Windup = { 0, 0 },
@@ -114,7 +109,7 @@ end
 ---@field animationsExportEnabled {[string]:boolean}
 
 local NormalSheetWidth = 832
-local NormalSheetHeight = 2944
+local NormalSheetHeight = 3456
 
 ---@param t ImportLPCCharacterArgs
 function ImportLPCCharacter(t)
