@@ -4,9 +4,11 @@
 ---@field y integer
 ---@field w integer
 ---@field h integer
+---@field file string
 ---@field columns integer?
 ---@field rows integer?
 ---@field parts {[string]: integer[]}?
+---@field [integer] LPCAnimation
 
 ---@alias AnimationSet {[string]:LPCAnimation,[integer]:string}
 
@@ -38,39 +40,46 @@ local StandardAnimations = {
     "IdleCalm", "Run", "Climb", "Jump", "Sit", "Emote",
     "IdleCombat", "Swing1Hand", "Thrust1Hand",
 
-    Cast = { s = 64, x = 0, y = 0, w = 448, h = 256 },
-    Thrust = { s = 64, x = 0, y = 256, w = 512, h = 256,
+    Cast = { file = "standard/spellcast.png", s = 64, x = 0, y = 0, w = 448, h = 256 },
+    Thrust = { file = "standard/thrust.png", s = 64, x = 0, y = 256, w = 512, h = 256,
         parts = {
             "Windup", "Attack",
             Windup = { 0, 3 },
             Attack = { 4, 7 }
-        }
+        },
+        [192] = { file = "custom/thrust_oversize.png" }
     },
-    Stand = { s = 64, x = 0, y = 512, w = 64, h = 256 },
-    Walk = { s = 64, x = 64, y = 512, w = 512, h = 256 },
-    Swing = { s = 64, x = 0, y = 768, w = 384, h = 256,
+    Stand = {
+        file = "standard/walk.png", s = 64, x = 0, y = 512, w = 64, h = 256,
+        [128] = { file = "custom/walk_128.png", s = 128, x = 0, y = 0, w = 128, h = 512 },
+    },
+    Walk = {
+        file = "standard/walk.png", s = 64, x = 64, y = 512, w = 512, h = 256,
+        [128] = { file = "custom/walk_128.png", s = 128, x = 128, y = 0, w = 1024, h = 512 },
+    },
+    Swing = { file = "standard/slash.png", s = 64, x = 0, y = 768, w = 384, h = 256,
         parts = {
             "Windup", "Attack",
             Windup = { 0, 2 }, Attack = { 3, 5 }
         }
     },
-    Shoot = { s = 64, x = 0, y = 1024, w = 832, h = 256,
+    Shoot = { file = "standard/shoot.png", s = 64, x = 0, y = 1024, w = 832, h = 256,
         parts = {
             "Windup", "Attack",
             Windup = { 0, 8 }, Attack = { 9, 11 }
         }
     },
-    Fall = { s = 64, x = 0, y = 1280, w = 384, h = 64,
+    Fall = { file = "standard/hurt.png", s = 64, x = 0, y = 1280, w = 384, h = 64,
         parts = {
             "Knees", "Flat", "RiseToKnees", "RiseToFeet",
             Knees = { 0, 2 }, Flat = { 3, 5 }, RiseToFeet = { 5, 0 }, RiseToKnees = { 5, 3 }
         }
     },
 
-    Climb = { s = 64, x = 0, y = 1344, w = 384, h = 64},
-    IdleCalm = { s = 64, x = 0, y = 1408, w = 128, h = 256 },
-    Jump = { s = 64, x = 0, y = 1664, w = 320, h = 256},
-    Sit = { s = 64, x = 0, y = 1920, w = 192, h = 256,
+    Climb = { file = "standard/climb.png", s = 64, x = 0, y = 1344, w = 384, h = 64},
+    IdleCalm = { file = "standard/idle.png", s = 64, x = 0, y = 1408, w = 128, h = 256 },
+    Jump = { file = "standard/jump.png", s = 64, x = 0, y = 1664, w = 320, h = 256},
+    Sit = { file = "standard/sit.png", s = 64, x = 0, y = 1920, w = 192, h = 256,
         parts = {
             "GroundMasc", "GroundFem", "Chair",
             GroundMasc = {0, 0},
@@ -78,7 +87,7 @@ local StandardAnimations = {
             Chair = {2, 2}
         }
     },
-    Emote = { s = 64, x = 0, y = 2176, w = 192, h = 256,
+    Emote = { file = "standard/emote.png", s = 64, x = 0, y = 2176, w = 192, h = 256,
         parts = {
             "HandsOnHips", "HandsBehindBack", "Surprised",
             HandsOnHips = {0, 0},
@@ -86,18 +95,19 @@ local StandardAnimations = {
             Surprised = {2, 2}
         }
     },
-    Run = { s = 64, x = 0, y = 2432, w = 512, h = 256 },
-    IdleCombat = { s = 64, x = 0, y = 2688, w = 128, h = 256 },
-    Swing1Hand = { s = 64, x = 0, y = 2944, w = 832, h = 256,
+    Run = { file = "standard/run.png", s = 64, x = 0, y = 2432, w = 512, h = 256 },
+    IdleCombat = { file = "standard/combat_idle.png", s = 64, x = 0, y = 2688, w = 128, h = 256 },
+    Swing1Hand = { file = "standard/backslash.png", s = 64, x = 0, y = 2944, w = 832, h = 256,
         parts = {
             "Windup", "Attack", "BackWindup", "BackAttack",
             Windup = { 0, 0 },
             Attack = { 1, 5 },
             BackWindup = { 6, 7 },
             BackAttack = { 8, 12 }
-        }
+        },
+        [192] = { file = "custom/slash_reverse_oversize.png" }
     },
-    Thrust1Hand = { s = 64, x = 0, y = 3200, w = 384, h = 256,
+    Thrust1Hand = { file = "standard/halfslash.png", s = 64, x = 0, y = 3200, w = 384, h = 256,
         parts = {
             "Windup", "Attack",
             Windup = { 0, 0 },
@@ -188,6 +198,7 @@ local function importExtraAnimations(sprite, args)
 
     ---@type LPCAnimation
     local extraAnimation = {
+        file = "",
         s = outputFrameSize,
         x = 0,
         y = StandardSheetHeight,
