@@ -1,22 +1,39 @@
 local import = require "import"
 
+local function openInputFile(inputFile)
+    if not inputFile then
+        return false, "No input file"
+    end
+    if not app.fs.isFile(inputFile) then
+        return false, "Not a file: "..inputFile
+    end
+    if app.fs.fileExtension(inputFile) == "png" then
+        local sprite = app.open(inputFile)
+        if sprite then
+            if sprite.height < 64 or sprite.width < 64 then
+                sprite:close()
+                return false, "File too small to hold any frames (min 64x64)."
+            end
+            return sprite
+        else
+            return false, "Not a valid png file"
+        end
+    -- elseif inputFile == "character.json" then
+    -- return inputFile
+    else
+        return false, "Not a png file"
+            -- .." or a character.json file"
+    end
+end
+
 ---comment
 ---@param args ImportLPCCharacterArgs
 function ImportLPCCharacterDialog(args)
-    local sheet = app.sprite
-    if not sheet then
-        app.alert("No file open.")
+    local inputSprite, whyNot = openInputFile(args.inputFile)
+    if not inputSprite then
+        app.alert(whyNot)
         return
     end
-    if sheet.height < 64 or sheet.width < 64 then
-        app.alert("File too small to hold any frames (min 64x64).")
-        return
-    end
-
-    local filename = app.fs.filePathAndTitle(app.sprite.filename)..".ase"
-
-    args.sheet = Image(sheet)
-    args.outputFile = filename
 
     local dialog = Dialog("Import LPC Character")
     dialog:combobox({
@@ -85,7 +102,8 @@ function ImportLPCCharacterDialog(args)
     dialog:button({
         text = "Import",
         onclick = function()
-            import.FromSheet(args)
+            import.FromSheet(inputSprite, args)
+            inputSprite:close()
             dialog:close()
         end
     })
@@ -93,7 +111,7 @@ function ImportLPCCharacterDialog(args)
     for _, name in ipairs(import.StandardAnimations) do
         local exportEnabled = args.animationsExportEnabled[name]
         setAnimationExportEnabled(name, exportEnabled)
-        local checkboxEnabled = import.sheetHasAnimationRow(import.StandardAnimations[name], 0, sheet)
+        local checkboxEnabled = import.sheetHasAnimationRow(import.StandardAnimations[name], 0, inputSprite)
         dialog:modify({
             id = "check"..name,
             enabled = checkboxEnabled
@@ -114,9 +132,16 @@ function init(plugin)
 
     plugin:newCommand({
         id="ImportLPCCharacter",
-        title="Import LPC Character",
+        title="Import current LPC character sheet",
         group="file_import_1",
         onclick=function()
+            local sprite = app.sprite
+            if not sprite then
+                app.alert("No file open.")
+                return
+            end
+            args.inputFile = app.sprite.filename
+            args.outputFile = app.fs.filePathAndTitle(app.sprite.filename)..".ase"
             ImportLPCCharacterDialog(args)
         end
     })

@@ -131,19 +131,20 @@ local function animationRowFramesInSheet(animation, row, sheet)
     return math.floor(width / sourceFrameSize)
 end
 
+---@param sprite Sprite
+---@param sheet Image
 ---@param animation LPCAnimation
 ---@param name string
 ---@param row integer
 ---@param dir integer|string
 ---@param args ImportLPCCharacterArgs
-local function importAnimation(sprite, animation, name, row, dir, args)
+local function importAnimation(sprite, sheet, animation, name, row, dir, args)
     local frameDuration = args.frametime
     local outputFrameSize = sprite.width
     local layer = sprite.layers[1]
     local frames = sprite.frames
     local sourceFrameSize = animation.s
     local columns = animation.columns
-    local sheet = args.sheet
     local maxX = sheet.width - sourceFrameSize
     local maxY = sheet.height - sourceFrameSize
     local sourceRect = Rectangle(animation.x, animation.y + row*sourceFrameSize, sourceFrameSize, sourceFrameSize)
@@ -186,10 +187,10 @@ end
 
 ---comment
 ---@param sprite Sprite
+---@param sheet Image
 ---@param args ImportLPCCharacterArgs
-local function importExtraAnimations(sprite, args)
+local function importExtraAnimations(sprite, sheet, args)
     local outputFrameSize = sprite.height
-    local sheet = args.sheet
     local extraheight = sheet.height - StandardSheetHeight
     if extraheight < outputFrameSize then return end
 
@@ -208,16 +209,16 @@ local function importExtraAnimations(sprite, args)
         columns = extracolumns
     }
     for i = 0, extrarows-1 do
-        importAnimation(sprite, extraAnimation, "extra", i, i, args)
+        importAnimation(sprite, sheet, extraAnimation, "extra", i, i, args)
     end
 end
 
 ---comment
 ---@param sprite Sprite
+---@param sheet Image
 ---@param animationSet AnimationSet
 ---@param args ImportLPCCharacterArgs
-local function importAnimationSet(sprite, animationSet, args)
-    local sheet = args.sheet
+local function importAnimationSet(sprite, sheet, animationSet, args)
     local enabledAnimations = args.animationsExportEnabled
 
     for _, basename in ipairs(animationSet) do
@@ -229,10 +230,10 @@ local function importAnimationSet(sprite, animationSet, args)
             if animationRowFramesInSheet(animation, 0, sheet) > 0 then
                 local rows = animation.rows
                 if rows <= 1 then
-                    importAnimation(sprite, animation, basename, 0, "", args)
+                    importAnimation(sprite, sheet, animation, basename, 0, "", args)
                 else
                     for r = rows, 1, -1 do
-                        importAnimation(sprite, animation, basename, r-1, rows-r, args)
+                        importAnimation(sprite, sheet, animation, basename, r-1, rows-r, args)
                     end
                 end
             end
@@ -248,20 +249,21 @@ function import.sheetHasAnimationRow(animation, row, sheet)
     return animationRowFramesInSheet(animation, row, sheet) > 0
 end
 
+---@param sheetsprite Sprite
 ---@param args ImportLPCCharacterArgs
-function import.FromSheet(args)
+function import.FromSheet(sheetsprite, args)
     app.transaction("Import LPC Character Sheet", function()
         local sprite = Sprite(args.size, args.size)
         sprite.filename = args.outputFile
-        importAnimationSet(sprite, StandardAnimations, args)
-        importExtraAnimations(sprite, args)
+        local sheet = Image(sheetsprite)
+        importAnimationSet(sprite, sheet, StandardAnimations, args)
+        importExtraAnimations(sprite, sheet, args)
         return sprite
     end)
 end
 
 
 ---@class ImportLPCCharacterArgs
----@field sheet Image
 ---@field inputFile string
 ---@field outputFile string
 ---@field frametime number in seconds
