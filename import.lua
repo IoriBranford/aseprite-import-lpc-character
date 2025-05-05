@@ -10,6 +10,28 @@
 
 ---@alias AnimationSet {[string]:LPCAnimation,[integer]:string}
 
+local StandardAnimationSheetRects = {
+    "stand", "walk", "hurt", "slash", "thrust", "shoot", "spellcast",
+    "idle", "run", "climb", "jump", "sit", "emote",
+    "combat_idle", "backslash", "halfslash",
+    spellcast = { x = 0, y = 0, w = 448, h = 256 },
+    thrust = { x = 0, y = 256, w = 512, h = 256 },
+    stand = { x = 0, y = 512, w = 64, h = 256 },
+    walk = { x = 64, y = 512, w = 512, h = 256 },
+    slash = { x = 0, y = 768, w = 384, h = 256 },
+    shoot = { x = 0, y = 1024, w = 832, h = 256 },
+    hurt = { x = 0, y = 1280, w = 384, h = 64 },
+    climb = { x = 0, y = 1344, w = 384, h = 64 },
+    idle = { x = 0, y = 1408, w = 128, h = 256 },
+    jump = { x = 0, y = 1664, w = 320, h = 256 },
+    sit = { x = 0, y = 1920, w = 192, h = 256 },
+    emote = { x = 0, y = 2176, w = 192, h = 256 },
+    run = { x = 0, y = 2432, w = 512, h = 256 },
+    combat_idle = { x = 0, y = 2688, w = 128, h = 256 },
+    backslash = { x = 0, y = 2944, w = 832, h = 256 },
+    halfslash = { x = 0, y = 3200, w = 384, h = 256 },
+}
+
 ---@type AnimationSet
 local StandardAnimations = {
     "Stand", "Walk", "Fall", "Swing", "Thrust", "Shoot", "Cast",
