@@ -29,13 +29,35 @@ end
 ---comment
 ---@param args ImportLPCCharacterArgs
 function ImportLPCCharacterDialog(args)
-    local inputSprite, whyNot = openInputFile(args.inputFile)
-    if not inputSprite then
-        app.alert(whyNot)
-        return
-    end
-
     local dialog = Dialog("Import LPC Character")
+    dialog:file({
+        id = "fileInput",
+        label = "Input",
+        filename = args.inputFile,
+        filetypes = {
+            "png", --"json"
+        },
+        open = true,
+        save = false,
+        onchange = function()
+            args.inputFile = dialog.data.fileInput
+        end
+    })
+    dialog:file({
+        id = "fileOutput",
+        label = "Output",
+        filename = args.outputFile,
+        filetypes = { "ase", "aseprite" },
+        open = false,
+        save = true,
+        onchange = function()
+            args.outputFile = dialog.data.fileOutput
+        end
+    })
+
+    dialog:separator({
+        text = "Options"
+    })
     dialog:combobox({
         id = "comboboxSpriteSize",
         label = "Sprite size",
@@ -102,8 +124,14 @@ function ImportLPCCharacterDialog(args)
     dialog:button({
         text = "Import",
         onclick = function()
-            import.FromSheet(inputSprite, args)
-            inputSprite:close()
+            local inputSprite, whyNot = openInputFile(args.inputFile)
+            if inputSprite then
+                local outputSprite = import.FromSheet(inputSprite, args)
+                inputSprite:close()
+                outputSprite:saveAs(args.outputFile)
+            else
+                app.alert(whyNot)
+            end
             dialog:close()
         end
     })
@@ -111,7 +139,7 @@ function ImportLPCCharacterDialog(args)
     for _, name in ipairs(import.StandardAnimations) do
         local exportEnabled = args.animationsExportEnabled[name]
         setAnimationExportEnabled(name, exportEnabled)
-        local checkboxEnabled = import.sheetHasAnimationRow(import.StandardAnimations[name], 0, inputSprite)
+        local checkboxEnabled = true --import.sheetHasAnimationRow(import.StandardAnimations[name], 0, inputSprite)
         dialog:modify({
             id = "check"..name,
             enabled = checkboxEnabled
