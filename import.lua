@@ -1,9 +1,9 @@
 ---@class LPCAnimation
----@field s integer
----@field x integer
----@field y integer
----@field w integer
----@field h integer
+---@field s 64|128|192
+---@field x integer? default to 0
+---@field y integer? default to 0
+---@field w integer? default to image width
+---@field h integer? default to image height
 ---@field file string
 ---@field columns integer?
 ---@field rows integer?
@@ -252,14 +252,14 @@ end
 ---@param sheetsprite Sprite
 ---@param args ImportLPCCharacterArgs
 function import.FromSheet(sheetsprite, args)
+    local sprite = Sprite(args.size, args.size)
+    sprite.filename = args.outputFile
     app.transaction("Import LPC Character Sheet", function()
-        local sprite = Sprite(args.size, args.size)
-        sprite.filename = args.outputFile
         local sheet = Image(sheetsprite)
         importAnimationSet(sprite, sheet, StandardAnimations, args)
         importExtraAnimations(sprite, sheet, args)
-        return sprite
     end)
+    return sprite
 end
 
 
