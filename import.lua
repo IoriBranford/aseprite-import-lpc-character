@@ -258,6 +258,31 @@ function import.FromSheet(sheetsprite, args)
     return sprite
 end
 
+function import.FromPack(args)
+    local size = args.size
+    local sprite = Sprite(size, size)
+    sprite.filename = args.outputFile
+
+    local packdir = app.fs.filePath(args.inputFile)
+    local enabledAnimations = args.animationsExportEnabled
+
+    local animationSet = StandardAnimations
+    for _, basename in ipairs(animationSet) do
+        if enabledAnimations[basename] then
+            local animation = animationSet[basename]
+            animation = animation[size] or animation
+
+            local file = app.fs.joinPath(packdir, animation.file)
+            local insprite = app.fs.isFile(file) and app.open(file)
+            if insprite then
+                importAnimation(sprite, Image(insprite), nil, animation, basename, args)
+                insprite:close()
+            end
+        end
+    end
+
+    return sprite
+end
 
 ---@class ImportLPCCharacterArgs
 ---@field inputFile string
