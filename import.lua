@@ -107,7 +107,7 @@ local StandardAnimations = {
         },
         [192] = { file = "custom/slash_reverse_oversize.png", s = 192 }
     },
-    halfslash = { file = "standard/halfslash.png", s = 64,
+    halfslash = { file = "standard/halfslash.png", s = 64, w = 384,
         parts = {
             "Windup", "Attack",
             Windup = { 0, 0 },
