@@ -52,10 +52,12 @@ local StandardAnimations = {
     stand = {
         file = "standard/walk.png", s = 64, x = 0, y = 0, w = 64, h = 256,
         [128] = { file = "custom/walk_128.png", s = 128, x = 0, y = 0, w = 128, h = 512 },
+        [192] = { file = "custom/walk_128.png", s = 128, x = 0, y = 0, w = 128, h = 512 },
     },
     walk = {
         file = "standard/walk.png", s = 64, x = 64, y = 0, w = 512, h = 256,
         [128] = { file = "custom/walk_128.png", s = 128, x = 128, y = 0, w = 1024, h = 512 },
+        [192] = { file = "custom/walk_128.png", s = 128, x = 128, y = 0, w = 1024, h = 512 },
     },
     slash = { file = "standard/slash.png", s = 64,
         parts = {
