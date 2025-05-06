@@ -119,7 +119,7 @@ function ImportLPCCharacterDialog(args)
         setAnimationPartsCheckboxesEnabled(name, exportEnabled and checkboxEnabled)
     end
 
-    dialog:show({wait = true})
+    dialog:show({wait = true, autoscrollbars = true})
 end
 
 ---@param plugin Plugin
