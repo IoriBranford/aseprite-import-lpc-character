@@ -18,11 +18,11 @@ local function openInputFile(inputFile)
         else
             return false, "Not a valid png file"
         end
-    -- elseif inputFile == "character.json" then
-    -- return inputFile
+    elseif app.fs.fileName(inputFile) == "character.json" then
+        return "character.json"
     else
         return false, "Not a png file"
-            -- .." or a character.json file"
+            .." or a character.json file"
     end
 end
 
@@ -30,17 +30,31 @@ end
 ---@param args ImportLPCCharacterArgs
 function ImportLPCCharacterDialog(args)
     local dialog = Dialog("Import LPC Character")
+
+    local function updateImportButtonEnabled()
+        dialog:modify({
+            id = "buttonImport",
+            enabled = (args.inputFile or "") ~= ""
+                and (args.outputFile or "") ~= ""
+        })
+    end
+
+    dialog:tab({
+        id = "tabImport",
+        text = "Import",
+    })
     dialog:file({
         id = "fileInput",
         label = "Input",
         filename = args.inputFile,
         filetypes = {
-            "png", --"json"
+            "png", "json"
         },
         open = true,
         save = false,
         onchange = function()
             args.inputFile = dialog.data.fileInput
+            updateImportButtonEnabled()
         end
     })
     dialog:file({
@@ -52,12 +66,10 @@ function ImportLPCCharacterDialog(args)
         save = true,
         onchange = function()
             args.outputFile = dialog.data.fileOutput
+            updateImportButtonEnabled()
         end
     })
 
-    dialog:separator({
-        text = "Options"
-    })
     dialog:combobox({
         id = "comboboxSpriteSize",
         label = "Sprite size",
@@ -76,7 +88,9 @@ function ImportLPCCharacterDialog(args)
             args.frametime = dialog.data.numberFrameTime / 1000
         end
     })
-    dialog:separator({
+
+    dialog:tab({
+        id = "tabAnimations",
         text = "Animations"
     })
 
@@ -121,11 +135,19 @@ function ImportLPCCharacterDialog(args)
         end
         dialog:newrow()
     end
+
+    dialog:endtabs({})
+
     dialog:button({
+        id = "buttonImport",
         text = "Import",
+        enabled = (args.inputFile or "") ~= "" and (args.outputFile or "") ~= "",
         onclick = function()
             local inputSprite, whyNot = openInputFile(args.inputFile)
-            if inputSprite then
+            if inputSprite == "character.json" then
+                local outputSprite = import.FromPack(args)
+                outputSprite:saveAs(args.outputFile)
+            elseif inputSprite then
                 local outputSprite = import.FromSheet(inputSprite, args)
                 inputSprite:close()
                 outputSprite:saveAs(args.outputFile)
@@ -160,7 +182,16 @@ function init(plugin)
 
     plugin:newCommand({
         id="ImportLPCCharacter",
-        title="Import current LPC character sheet",
+        title="Import LPC character",
+        group="file_import_1",
+        onclick=function()
+            ImportLPCCharacterDialog(args)
+        end
+    })
+
+    plugin:newCommand({
+        id="ImportCurrentLPCCharacter",
+        title="Import current LPC character",
         group="file_import_1",
         onclick=function()
             local sprite = app.sprite
