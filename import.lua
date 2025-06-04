@@ -251,6 +251,7 @@ local import = {
 ---@param args ImportLPCCharacterArgs
 function import.FromSheet(sheetsprite, args)
     local sprite = Sprite(args.size, args.size)
+    sprite:setPalette(sheetsprite.palettes[1])
     sprite.filename = args.outputFile
     app.transaction("Import LPC Character Sheet", function()
         local sheet = Image(sheetsprite)
@@ -267,6 +268,8 @@ function import.FromPack(args)
 
     local packdir = app.fs.filePath(args.inputFile)
     local enabledAnimations = args.animationsExportEnabled
+    local paletteMap = {}
+    local paletteArray = {}
 
     local animationSet = StandardAnimations
     for _, basename in ipairs(animationSet) do
@@ -277,11 +280,25 @@ function import.FromPack(args)
             local file = app.fs.joinPath(packdir, animation.file)
             local insprite = app.fs.isFile(file) and app.open(file)
             if insprite then
+                local inpalette = insprite.palettes[1]
+                for i = 0, #inpalette-1 do
+                    local rgba = inpalette:getColor(i).rgbaPixel
+                    if not paletteMap[rgba] then
+                        paletteMap[rgba] = true
+                        paletteArray[#paletteArray+1] = rgba
+                    end
+                end
                 importAnimation(sprite, Image(insprite), nil, animation, basename, args)
                 insprite:close()
             end
         end
     end
+
+    local palette = Palette(#paletteArray)
+    for i = 1, #paletteArray do
+        palette:setColor(i-1, paletteArray[i])
+    end
+    sprite:setPalette(palette)
 
     return sprite
 end
