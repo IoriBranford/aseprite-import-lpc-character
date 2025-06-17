@@ -1,3 +1,4 @@
+require "lpc"
 local import = require "import"
 
 local function openInputFile(inputFile)
@@ -95,7 +96,7 @@ function ImportLPCCharacterDialog(args)
     })
 
     local function setAnimationPartsCheckboxesEnabled(name, enabled)
-        local animation = import.StandardAnimations[name]
+        local animation = StandardAnimations[name]
         local parts = animation and animation.parts
         if parts then
             for _, part in ipairs(parts) do
@@ -123,10 +124,10 @@ function ImportLPCCharacterDialog(args)
         })
     end
 
-    for _, name in ipairs(import.StandardAnimations) do
+    for _, name in ipairs(StandardAnimations) do
         animationCheckbox(name)
 
-        local animation = import.StandardAnimations[name]
+        local animation = StandardAnimations[name]
         local parts = animation.parts
         if parts then
             for _, part in ipairs(parts) do
@@ -158,10 +159,10 @@ function ImportLPCCharacterDialog(args)
         end
     })
 
-    for _, name in ipairs(import.StandardAnimations) do
+    for _, name in ipairs(StandardAnimations) do
         local exportEnabled = args.animationsExportEnabled[name]
         setAnimationExportEnabled(name, exportEnabled)
-        local checkboxEnabled = true --import.sheetHasAnimationRow(import.StandardAnimations[name], 0, inputSprite)
+        local checkboxEnabled = true --import.sheetHasAnimationRow(StandardAnimations[name], 0, inputSprite)
         dialog:modify({
             id = "check"..name,
             enabled = checkboxEnabled
