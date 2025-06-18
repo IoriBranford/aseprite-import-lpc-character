@@ -1,10 +1,10 @@
 ---@class LPCAnimation
 ---@field s 64|128|192?
 ---@field folder string?
----@field parts {[integer]:string, [string]: integer[]}?
----@field [integer] LPCAnimation
+---@field parts AnimationParts?
 
 ---@alias AnimationSet {[string]:LPCAnimation,[integer]:string}
+---@alias AnimationParts {[integer]:string, [string]: integer[]}
 
 StandardFrameSize = 64
 
