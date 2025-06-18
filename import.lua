@@ -1,16 +1,16 @@
 require "lpc"
 
 ---@param sprite Sprite
+---@param layer Layer|integer
 ---@param sheet Image
 ---@param rowrect Rectangle
 ---@param animation LPCAnimation
 ---@param animname string
 ---@param rowname integer|string
 ---@param args ImportLPCCharacterArgs
-local function importAnimationRow(sprite, sheet, rowrect, animation, animname, rowname, args)
+local function importAnimationRow(sprite, layer, sheet, rowrect, animation, animname, rowname, args)
     local frameDuration = args.frametime
     local outputFrameSize = sprite.width
-    local layer = sprite.layers[1]
     local frames = sprite.frames
     local sourceFrameSize = rowrect.h or rowrect.height
     local columns = math.floor((rowrect.w or rowrect.width) / sourceFrameSize)
@@ -20,6 +20,10 @@ local function importAnimationRow(sprite, sheet, rowrect, animation, animname, r
     local dest = Point(outputFrameSize/2 - sourceFrameSize/2, outputFrameSize/2 - sourceFrameSize/2)
     local fromFrameNumber = #frames
     local toFrameNumber = #frames + columns - 1
+    if type(layer) == "number" then
+        layer = sprite.layers[layer]
+    end
+    ---@cast layer Layer
     for _ = 1, columns do
         if sourceRect.x <= maxX and sourceRect.y <= maxY then
             local frame = frames[#frames]
@@ -58,7 +62,7 @@ end
 ---@param sprite Sprite
 ---@param sheet Image
 ---@param args ImportLPCCharacterArgs
-local function importExtraAnimations(sprite, sheet, args)
+local function importExtraAnimations(sprite, layer, sheet, args)
     local outputFrameSize = sprite.height
     local extraheight = sheet.height - StandardSheetHeight
     if extraheight < outputFrameSize then return end
@@ -75,12 +79,12 @@ local function importExtraAnimations(sprite, sheet, args)
         x = 0, y = StandardSheetHeight, w = extracolumns*outputFrameSize, h = outputFrameSize
     }
     for i = 0, extrarows-1 do
-        importAnimationRow(sprite, sheet, dirrect, extraAnimation, "extra", i, args)
+        importAnimationRow(sprite, layer, sheet, dirrect, extraAnimation, "extra", i, args)
         dirrect.y = dirrect.y + outputFrameSize
     end
 end
 
-local function importAnimation(sprite, sheet, animrect, animation, basename, args)
+local function importAnimation(sprite, layer, sheet, animrect, animation, basename, args)
     local animh = animation.h or sheet.height
     local rowrect = {
         x = animation.x or 0,
@@ -97,28 +101,29 @@ local function importAnimation(sprite, sheet, animrect, animation, basename, arg
 
     local rows = math.floor(animh / animation.s)
     if rows == 1 then
-        importAnimationRow(sprite, sheet, rowrect, animation, basename, "", args)
+        importAnimationRow(sprite, layer, sheet, rowrect, animation, basename, "", args)
     elseif rows > 1 then
         rowrect.y = rowrect.y + rows*animation.s
         for r = rows, 1, -1 do
             rowrect.y = rowrect.y - animation.s
-            importAnimationRow(sprite, sheet, rowrect, animation, basename, rows-r, args)
+            importAnimationRow(sprite, layer, sheet, rowrect, animation, basename, rows-r, args)
         end
     end
 end
 
 ---@param sprite Sprite
+---@param layer Layer|integer
 ---@param sheet Image
 ---@param animationSet AnimationSet
 ---@param args ImportLPCCharacterArgs
-local function importAnimationSet(sprite, sheet, animationSet, animationrects, args)
+local function importAnimationSet(sprite, layer, sheet, animationSet, animationrects, args)
     local enabledAnimations = args.animationsExportEnabled
 
     for _, basename in ipairs(animationSet) do
         if enabledAnimations[basename] then
             local animation = animationSet[basename]
             local srcrect = animationrects and animationrects[basename]
-            importAnimation(sprite, sheet, srcrect, animation, basename, args)
+            importAnimation(sprite, layer, sheet, srcrect, animation, basename, args)
         end
     end
 end
@@ -133,8 +138,8 @@ function import.FromSheet(sheetsprite, args)
     sprite.filename = args.outputFile
     app.transaction("Import LPC Character Sheet", function()
         local sheet = Image(sheetsprite)
-        importAnimationSet(sprite, sheet, StandardAnimations, StandardAnimationSheetRects, args)
-        importExtraAnimations(sprite, sheet, args)
+        importAnimationSet(sprite, 1, sheet, StandardAnimations, StandardSheetRects, args)
+        importExtraAnimations(sprite, 1, sheet, args)
     end)
     return sprite
 end
@@ -166,7 +171,7 @@ function import.FromPack(args)
                         paletteArray[#paletteArray+1] = rgba
                     end
                 end
-                importAnimation(sprite, Image(insprite), nil, animation, basename, args)
+                importAnimation(sprite, 1, Image(insprite), nil, animation, basename, args)
                 insprite:close()
             end
         end
