@@ -159,115 +159,16 @@ local function importAnimationSprite(charSprite, charLayer, charF1, animSprite, 
     end
 end
 
----@param sprite Sprite
----@param layer Layer|integer
 ---@param sheet Image
----@param rowrect Rectangle
----@param animation LPCAnimation
----@param animname string
----@param rowname integer|string
----@param args ImportLPCCharacterArgs
-local function importAnimationRow(sprite, layer, sheet, rowrect, animation, animname, rowname, args)
-    local frameDuration = args.frametime
-    local outputFrameSize = sprite.width
-    local frames = sprite.frames
-    local sourceFrameSize = rowrect.h or rowrect.height
-    local columns = math.floor((rowrect.w or rowrect.width) / sourceFrameSize)
-    local maxX = sheet.width - sourceFrameSize
-    local maxY = sheet.height - sourceFrameSize
-    local sourceRect = Rectangle(rowrect.x, rowrect.y, sourceFrameSize, sourceFrameSize)
-    local dest = Point(outputFrameSize/2 - sourceFrameSize/2, outputFrameSize/2 - sourceFrameSize/2)
-    local fromFrameNumber = #frames
-    local toFrameNumber = #frames + columns - 1
-    if type(layer) == "number" then
-        layer = sprite.layers[layer]
-    end
-    ---@cast layer Layer
-    for _ = 1, columns do
-        if sourceRect.x <= maxX and sourceRect.y <= maxY then
-            local frame = frames[#frames]
-            frame.duration = frameDuration
-            local image = Image(sheet, sourceRect)
-            sprite:newCel(layer, frame, image, dest)
-        end
-        sourceRect.x = sourceRect.x + sourceFrameSize
-        sprite:newEmptyFrame()
-    end
-
-    local tag = sprite:newTag(fromFrameNumber, toFrameNumber)
-    tag.name = animname..rowname
-
-    local parts = animation.parts
-    if parts then
-        local enabledAnimations = args.animationsExportEnabled
-        for _, part in ipairs(parts) do
-            if not enabledAnimations or enabledAnimations[animname..part] then
-                local range = parts[part]
-                local from, to = range[1], range[2]
-                local direction
-                if to < from then
-                    direction = AniDir.REVERSE
-                    from, to = to, from
-                end
-                tag = sprite:newTag(fromFrameNumber + range[1], fromFrameNumber + range[2])
-                tag.aniDir = direction
-                tag.name = animname..part..rowname
-            end
-        end
-    end
-end
-
----comment
----@param sprite Sprite
----@param sheet Image
----@param args ImportLPCCharacterArgs
-local function importExtraAnimations(sprite, layer, sheet, args)
-    local outputFrameSize = sprite.height
+local function extractExtraSheet(sheet)
     local extraheight = sheet.height - StandardSheetHeight
-    if extraheight < outputFrameSize then return end
+    if extraheight <= 0 then return end
 
-    local extrarows = math.floor(extraheight / outputFrameSize)
-    local extracolumns = math.floor(sheet.width / outputFrameSize)
-
-    ---@type LPCAnimation
-    local extraAnimation = {
-        file = "",
-        s = outputFrameSize,
-    }
-    local dirrect = {
-        x = 0, y = StandardSheetHeight, w = extracolumns*outputFrameSize, h = outputFrameSize
-    }
-    for i = 0, extrarows-1 do
-        importAnimationRow(sprite, layer, sheet, dirrect, extraAnimation, "extra", i, args)
-        dirrect.y = dirrect.y + outputFrameSize
-    end
-end
-
-local function importAnimation(sprite, layer, sheet, animrect, animation, basename, args)
-    local animh = animation.h or sheet.height
-    local rowrect = {
-        x = animation.x or 0,
-        y = animation.y or 0,
-        w = animation.w or sheet.width,
-        h = animation.s
-    }
-    if animrect then
-        rowrect.x = animrect.x or rowrect.x
-        rowrect.y = animrect.y or rowrect.y
-        rowrect.w = animrect.w or rowrect.w
-        animh = animrect.h or animh
-    end
-
-    local rows = math.floor(animh / animation.s)
-    if rows == 1 then
-        importAnimationRow(sprite, layer, sheet, rowrect, animation, basename, "", args)
-    elseif rows > 1 then
-        rowrect.y = rowrect.y + rows*animation.s
-        for r = rows, 1, -1 do
-            rowrect.y = rowrect.y - animation.s
-            importAnimationRow(sprite, layer, sheet, rowrect, animation, basename, rows-r, args)
-        end
-    end
+    local rect = {0, StandardSheetHeight, sheet.width, extraheight}
+    local extraImage = Image(sheet, rect)
+    local extraSprite = Sprite(rect.width, rect.height)
+    extraSprite:newCel(extraSprite.layers[1], 1, extraImage)
+    return extraSprite
 end
 
 ---@param sprite Sprite
@@ -275,14 +176,16 @@ end
 ---@param sheet Image
 ---@param animationSet AnimationSet
 ---@param args ImportLPCCharacterArgs
-local function importAnimationSet(sprite, layer, sheet, animationSet, animationrects, args)
+local function importStandardSheet(sprite, layer, sheet, animationSet, animationrects, args)
     local enabledAnimations = args.animationsExportEnabled
 
     for _, basename in ipairs(animationSet) do
-        if enabledAnimations[basename] then
-            local animation = animationSet[basename]
-            local srcrect = animationrects and animationrects[basename]
-            importAnimation(sprite, layer, sheet, srcrect, animation, basename, args)
+        local animation = enabledAnimations[basename] and animationSet[basename]
+        local srcrect = animationrects and animationrects[basename]
+        if animation and srcrect then
+            local animSprite = animationSpriteFromSheetRect(sheet, srcrect, animation, sprite.height)
+            importAnimationSprite(sprite, layer, #sprite.frames, animSprite, basename)
+            animSprite:close()
         end
     end
 end
@@ -318,8 +221,8 @@ function import.FromSheet(sheetsprite, args)
     sprite.filename = args.outputFile
     app.transaction("Import LPC Character Sheet", function()
         local sheet = Image(sheetsprite)
-        importAnimationSet(sprite, 1, sheet, StandardAnimations, StandardSheetRects, args)
-        importExtraAnimations(sprite, 1, sheet, args)
+        importStandardSheet(sprite, 1, sheet, StandardAnimations, StandardSheetRects, args)
+        extractExtraSheet(sheet)
     end)
     return sprite
 end
@@ -334,25 +237,30 @@ function import.FromPack(args)
     local paletteMap = {}
     local paletteArray = {}
 
-    local animationSet = StandardAnimations
-    for _, basename in ipairs(animationSet) do
-        if enabledAnimations[basename] then
-            local animation = animationSet[basename]
-            animation = animation[size] or animation
+    local animationSet = LPCAnimations
+    for _, animName in ipairs(animationSet) do
+        if enabledAnimations[animName] ~= false then
+            local animation = animationSet[animName]
 
-            local file = app.fs.joinPath(packdir, animation.file)
-            local insprite = app.fs.isFile(file) and app.open(file)
-            if insprite then
-                local inpalette = insprite.palettes[1]
-                for i = 0, #inpalette-1 do
-                    local rgba = inpalette:getColor(i).rgbaPixel
-                    if not paletteMap[rgba] then
-                        paletteMap[rgba] = true
-                        paletteArray[#paletteArray+1] = rgba
+            local animPath = app.fs.joinPath(packdir, animation.folder, animName)
+            if app.fs.isDirectory(animPath) then
+                -- TODO animation's item sheets
+            else
+                local animSprite = animationSpriteFromFile(animPath..".png", animation, size)
+                if animSprite then
+                    importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
+
+                    local inpalette = animSprite.palettes[1]
+                    for i = 0, #inpalette-1 do
+                        local rgba = inpalette:getColor(i).rgbaPixel
+                        if not paletteMap[rgba] then
+                            paletteMap[rgba] = true
+                            paletteArray[#paletteArray+1] = rgba
+                        end
                     end
+
+                    animSprite:close()
                 end
-                importAnimation(sprite, 1, Image(insprite), nil, animation, basename, args)
-                insprite:close()
             end
         end
     end
@@ -376,9 +284,9 @@ end
 ---@return ImportLPCCharacterArgs
 function import.NewArgs()
     local animationsExportEnabled = {}
-    for _, name in ipairs(StandardAnimations) do
+    for _, name in ipairs(LPCAnimations) do
         animationsExportEnabled[name] = true
-        local animation = StandardAnimations[name]
+        local animation = LPCAnimations[name]
         local parts = animation.parts
         if parts then
             for _, part in ipairs(parts) do
