@@ -51,8 +51,14 @@ local function tagAnimationSprite(animSprite, animation, columns, rows)
                 local part = parts[partname]
                 local partfrom = from + part[1]
                 local partto = from + part[2]
+                local aniDir = AniDir.FORWARD
+                if partto < partfrom then
+                    aniDir = AniDir.REVERSE
+                    partto, partfrom = partfrom, partto
+                end
                 local parttag = animSprite:newTag(partfrom, partto)
                 parttag.name = partname..dir
+                parttag.aniDir = aniDir
             end
         end
     else
@@ -149,6 +155,7 @@ local function importAnimationSprite(charSprite, charLayer, charF1, animSprite, 
         local to = charF1 + animTag.toFrame.frameNumber - 1
         local tag = charSprite:newTag(from, to)
         tag.name = animName..animTag.name
+        tag.aniDir = animTag.aniDir
     end
 end
 
