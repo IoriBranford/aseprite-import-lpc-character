@@ -280,6 +280,27 @@ local function importAnimationSet(sprite, layer, sheet, animationSet, animationr
     end
 end
 
+local function makeItemLayers(sprite, animpaths)
+    local layers = {}
+    sprite:deleteLayer(sprite.layers[1])
+    for _, animpath in ipairs(animpaths) do
+        for _, layerfile in ipairs(app.fs.listFiles(animpath)) do
+            local layername = app.fs.fileTitle(layerfile)
+            if not layers[layername] then
+                layers[#layers+1] = layername
+                layers[layername] = true
+            end
+        end
+    end
+    table.sort(layers)
+    for _, layername in ipairs(layers) do
+        local layer = sprite:newLayer()
+        layer.name = layername
+        layers[layername] = layer
+    end
+    return layers
+end
+
 local import = {}
 
 ---@param sheetsprite Sprite
