@@ -1,5 +1,157 @@
 require "lpc"
 
+---@param n integer
+---@param toSprite Sprite
+---@param toLayer Layer|integer
+---@param toF1 integer
+---@param fromSprite Sprite
+---@param fromLayer Layer|integer
+---@param fromF1 integer
+local function copyCels(n, toSprite, toLayer, toF1, fromSprite, fromLayer, fromF1)
+    if type(fromLayer) == "number" then
+        fromLayer = fromSprite.layers[fromLayer]
+    end
+    if type(toLayer) == "number" then
+        toLayer = toSprite.layers[toLayer]
+    end
+    ---@cast fromLayer Layer
+    ---@cast toLayer Layer
+
+    local fromFrames = fromSprite.frames
+    n = math.min(n, 1 + #fromFrames - fromF1)
+    if n < 1 then return end
+
+    local toFrames = toSprite.frames
+    for i = #toFrames + 1, toF1 + n - 1 do
+        toSprite:newEmptyFrame()
+    end
+
+    for i = 0, n-1 do
+        local fromCel = fromLayer:cel(fromF1 + i)
+        if fromCel then
+            toSprite:newCel(toLayer, toF1 + i, fromCel.image, fromCel.position)
+        end
+    end
+end
+
+---@param animSprite Sprite
+---@param animation LPCAnimation
+---@param columns integer
+---@param rows integer
+local function tagAnimationSprite(animSprite, animation, columns, rows)
+    local parts = animation.parts or {}
+    if rows > 1 then
+        for i = 0, rows-1 do
+            local dir = tostring(rows-i-1)
+            local from, to = i*columns + 1, (i+1)*columns
+            local tag = animSprite:newTag(from, to)
+            tag.name = dir
+
+            for _, partname in ipairs(parts) do
+                local part = parts[partname]
+                local partfrom = from + part[1]
+                local partto = from + part[2]
+                local parttag = animSprite:newTag(partfrom, partto)
+                parttag.name = partname..dir
+            end
+        end
+    else
+        local from, to = 1, columns
+        local tag = animSprite:newTag(from, to)
+        tag.name = ""
+
+        for _, partname in ipairs(parts) do
+            local part = parts[partname]
+            local partfrom = from + part[1]
+            local partto = from + part[2]
+            local parttag = animSprite:newTag(partfrom, partto)
+            parttag.name = partname
+        end
+    end
+end
+
+---@param sprite Sprite
+---@param targetSize integer
+local function growSprite(sprite, targetSize)
+    local diff = (targetSize - sprite.height) / 2
+    if diff >= 1 then
+        app.sprite = sprite
+        app.command.CanvasSize {
+            ui = false,
+            left = diff, right = diff,
+            top = diff, bottom = diff
+        }
+    end
+end
+
+---@param animSprite Sprite
+---@param animation LPCAnimation
+---@param targetFrameSize integer
+local function processAnimationSprite(animSprite, animation, targetFrameSize)
+    local sheetFrameSize = animation.s or StandardFrameSize
+    local columns = math.floor(animSprite.width / sheetFrameSize)
+    local rows = math.floor(animSprite.height / sheetFrameSize)
+
+    app.sprite = animSprite
+    app.command.ImportSpriteSheet {
+        ui = false,
+        type = SpriteSheetType.ROWS,
+        frameBounds = Rectangle(0, 0, sheetFrameSize, sheetFrameSize),
+    }
+
+    tagAnimationSprite(animSprite, animation, columns, rows)
+    growSprite(animSprite, targetFrameSize)
+end
+
+---@param animFile string
+---@param animation LPCAnimation
+---@param targetFrameSize integer
+---@return Sprite?
+local function animationSpriteFromFile(animFile, animation, targetFrameSize)
+    local animSprite = app.fs.isFile(animFile) and app.open(animFile)
+    if not animSprite then return end
+    processAnimationSprite(animSprite, animation, targetFrameSize)
+    return animSprite
+end
+
+---@param sheet Image
+---@param rect RectangleArg
+---@param animation LPCAnimation
+---@param targetFrameSize integer
+---@return Sprite
+local function animationSpriteFromSheetRect(sheet, rect, animation, targetFrameSize)
+    local animImage = Image(sheet, rect)
+    local animSprite = Sprite(rect.width, rect.height)
+    animSprite:newCel(animSprite.layers[1], 1, animImage, {-rect.x, -rect.y})
+    processAnimationSprite(animSprite, animation, targetFrameSize)
+    return animSprite
+end
+
+---@param charSprite Sprite
+---@param charLayer Layer|integer
+---@param charF1 integer
+---@param animSprite Sprite
+---@param animName string
+---@return Sprite?
+local function importAnimationSprite(charSprite, charLayer, charF1, animSprite, animName)
+    growSprite(charSprite, animSprite.height)
+    copyCels(#animSprite.frames,
+        charSprite, charLayer, charF1,
+        animSprite, 1, 1)
+
+    -- Avoid creating a tag that goes to the last frame.
+    -- If you add a new frame with any tags going to the last frame,
+    -- Aseprite extends those tags to the new frame.
+    charSprite:newEmptyFrame()
+
+    for _, animTag in ipairs(animSprite.tags) do
+        local from = charF1 + animTag.fromFrame.frameNumber - 1
+        local to = charF1 + animTag.toFrame.frameNumber - 1
+        local tag = charSprite:newTag(from, to)
+        tag.name = animName..animTag.name
+    end
+end
+
 ---@param sprite Sprite
 ---@param layer Layer|integer
 ---@param sheet Image
