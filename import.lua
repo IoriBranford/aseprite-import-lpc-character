@@ -35,6 +35,26 @@ local function copyCels(n, toSprite, toLayer, toF1, fromSprite, fromLayer, fromF
 end
 
 ---@param animSprite Sprite
+---@param parts AnimationParts
+---@param f1 integer
+---@param suffix string
+local function tagPartAnimations(animSprite, parts, f1, suffix)
+    for _, partname in ipairs(parts) do
+        local part = parts[partname]
+        local partfrom = f1 + part[1]
+        local partto = f1 + part[2]
+        local aniDir = AniDir.FORWARD
+        if partto < partfrom then
+            aniDir = AniDir.REVERSE
+            partto, partfrom = partfrom, partto
+        end
+        local parttag = animSprite:newTag(partfrom, partto)
+        parttag.name = partname..suffix
+        parttag.aniDir = aniDir
+    end
+end
+
+---@param animSprite Sprite
 ---@param animation LPCAnimation
 ---@param columns integer
 ---@param rows integer
@@ -47,32 +67,14 @@ local function tagAnimationSprite(animSprite, animation, columns, rows)
             local tag = animSprite:newTag(from, to)
             tag.name = dir
 
-            for _, partname in ipairs(parts) do
-                local part = parts[partname]
-                local partfrom = from + part[1]
-                local partto = from + part[2]
-                local aniDir = AniDir.FORWARD
-                if partto < partfrom then
-                    aniDir = AniDir.REVERSE
-                    partto, partfrom = partfrom, partto
-                end
-                local parttag = animSprite:newTag(partfrom, partto)
-                parttag.name = partname..dir
-                parttag.aniDir = aniDir
-            end
+            tagPartAnimations(animSprite, parts, from, tag.name)
         end
     else
         local from, to = 1, columns
         local tag = animSprite:newTag(from, to)
         tag.name = ""
 
-        for _, partname in ipairs(parts) do
-            local part = parts[partname]
-            local partfrom = from + part[1]
-            local partto = from + part[2]
-            local parttag = animSprite:newTag(partfrom, partto)
-            parttag.name = partname
-        end
+        tagPartAnimations(animSprite, parts, from, tag.name)
     end
 end
 
