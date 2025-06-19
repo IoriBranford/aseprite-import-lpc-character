@@ -261,81 +261,101 @@ local function usePaletteColors(sprite, paletteColors)
     sprite:setPalette(palette)
 end
 
+local function importItemSheets(sprite, itemsdir, args)
+    local paletteColors = {}
+    local files = app.fs.listFiles(itemsdir)
+    table.sort(files)
+
+    sprite:deleteLayer(sprite.layers[1])
+    makeItemLayers(sprite, {itemsdir})
+
+    local extrasprite
+    local withTags = true
+    for i, file in ipairs(files) do
+        file = app.fs.joinPath(itemsdir, file)
+        local sheetsprite = app.fs.isFile(file) and app.open(file)
+        if sheetsprite then
+            local sheet = Image(sheetsprite)
+            gatherPaletteColors(paletteColors, sheetsprite)
+            sheetsprite:close()
+
+            local layer = sprite.layers[i]
+
+            importStandardSheet(sprite, layer, sheet,
+                StandardAnimations, StandardSheetRects, args, withTags)
+
+            withTags = false
+
+            local extrasheet = extractExtraSheet(sheet)
+            if extrasheet and not extrasprite then
+                extrasprite = Sprite(extrasheet.width, extrasheet.height)
+                extrasprite:deleteLayer(extrasprite.layers[1])
+            end
+            if extrasprite then
+                local extralayer = extrasprite:newLayer()
+                extralayer.name = layer.name
+                if extrasheet then
+                    extrasprite:newCel(extralayer, 1, extrasheet)
+                end
+            end
+        end
+    end
+    if extrasprite then
+        extrasprite:saveAs(app.fs.filePathAndTitle(sprite.filename)..".extra.ase")
+    end
+    usePaletteColors(sprite, paletteColors)
+    return sprite, extrasprite
+end
+
+local function importAnimations(sprite, packdir, animationSet, args)
+    local enabledAnimations = args.animationsExportEnabled
+    local paletteColors = {}
+    for _, animName in ipairs(animationSet) do
+        if enabledAnimations[animName] ~= false then
+            local animation = animationSet[animName]
+
+            local file = app.fs.joinPath(packdir, animation.folder, animName..".png")
+            local animSprite = animationSpriteFromFile(file, animation, sprite.height, true)
+            if animSprite then
+                importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
+                gatherPaletteColors(paletteColors, animSprite)
+                animSprite:close()
+            end
+        end
+    end
+    usePaletteColors(sprite, paletteColors)
+    return sprite
+end
+
+local function importItemAnimations(sprite)
+    return sprite
+end
+
 function import.FromPack(args)
     local size = args.size
     local sprite = Sprite(size, size)
     sprite.filename = args.outputFile
 
     local packdir = app.fs.filePath(args.inputFile)
-    local enabledAnimations = args.animationsExportEnabled
-    local paletteColors = {}
 
     local itemsdir = app.fs.joinPath(packdir, "items")
     if app.fs.isDirectory(itemsdir) then
-        local itemsfiles = app.fs.listFiles(itemsdir)
-        table.sort(itemsfiles)
-
-        sprite:deleteLayer(sprite.layers[1])
-        makeItemLayers(sprite, {itemsdir})
-
-        local extrasprite
-        local withTags = true
-        for i, itemfile in ipairs(itemsfiles) do
-            itemfile = app.fs.joinPath(itemsdir, itemfile)
-            local itemsheetsprite = app.fs.isFile(itemfile) and app.open(itemfile)
-            if itemsheetsprite then
-                local itemsheet = Image(itemsheetsprite)
-                gatherPaletteColors(paletteColors, itemsheetsprite)
-                itemsheetsprite:close()
-
-                local layer = sprite.layers[i]
-
-                importStandardSheet(sprite, layer, itemsheet,
-                    StandardAnimations, StandardSheetRects, args, withTags)
-
-                withTags = false
-
-                local extrasheet = extractExtraSheet(itemsheet)
-                if extrasheet and not extrasprite then
-                    extrasprite = Sprite(extrasheet.width, extrasheet.height)
-                    extrasprite:deleteLayer(extrasprite.layers[1])
-                end
-                if extrasprite then
-                    local extralayer = extrasprite:newLayer()
-                    extralayer.name = layer.name
-                    if extrasheet then
-                        extrasprite:newCel(extralayer, 1, extrasheet)
-                    end
-                end
-            end
-        end
-        if extrasprite then
-            extrasprite:saveAs(app.fs.filePathAndTitle(sprite.filename)..".extra.ase")
-        end
-    else
-        local animationSet = LPCAnimations
-        for _, animName in ipairs(animationSet) do
-            if enabledAnimations[animName] ~= false then
-                local animation = animationSet[animName]
-
-                local animPath = app.fs.joinPath(packdir, animation.folder, animName)
-                if app.fs.isDirectory(animPath) then
-                    -- TODO animation's item sheets
-                else
-                    local animSprite = animationSpriteFromFile(animPath..".png", animation, size, true)
-                    if animSprite then
-                        importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
-                        gatherPaletteColors(paletteColors, animSprite)
-                        animSprite:close()
-                    end
-                end
-            end
-        end
+        return importItemSheets(sprite, itemsdir, args)
     end
 
-    usePaletteColors(sprite, paletteColors)
+    local standarddir = app.fs.joinPath(packdir, "standard")
+    assert(app.fs.isDirectory(standarddir), "missing standard folder")
 
-    return sprite
+    local standardanim1 = app.fs.listFiles(standarddir)[1]
+    assert(standardanim1, "empty standard folder")
+
+    standardanim1 = app.fs.joinPath(standarddir, standardanim1)
+    if app.fs.isDirectory(standardanim1) then
+        return importItemAnimations(sprite)
+    elseif app.fs.isFile(standardanim1) then
+        return importAnimations(sprite, packdir, LPCAnimations, args)
+    end
+    error("unknown pack structure")
 end
 
 ---@class ImportLPCCharacterArgs
