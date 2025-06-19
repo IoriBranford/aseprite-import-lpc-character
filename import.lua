@@ -236,6 +236,17 @@ function import.FromSheet(sheetsprite, args)
     return sprite
 end
 
+local function copyPaletteColors(toPaletteMap, toPaletteArray, fromSprite)
+    local inpalette = fromSprite.palettes[1]
+    for i = 0, #inpalette-1 do
+        local rgba = inpalette:getColor(i).rgbaPixel
+        if not toPaletteMap[rgba] then
+            toPaletteMap[rgba] = true
+            toPaletteArray[#toPaletteArray+1] = rgba
+        end
+    end
+end
+
 function import.FromPack(args)
     local size = args.size
     local sprite = Sprite(size, size)
