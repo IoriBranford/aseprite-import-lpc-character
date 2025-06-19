@@ -156,7 +156,9 @@ local function importAnimationSprite(charSprite, charLayer, charF1, animSprite, 
     -- Avoid creating a tag that goes to the last frame.
     -- If you add a new frame with any tags going to the last frame,
     -- Aseprite extends those tags to the new frame.
-    charSprite:newEmptyFrame()
+    if #animSprite.tags > 0 then
+        charSprite:newEmptyFrame()
+    end
 
     for _, animTag in ipairs(animSprite.tags) do
         local from = charF1 + animTag.fromFrame.frameNumber - 1
