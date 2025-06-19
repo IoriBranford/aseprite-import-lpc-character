@@ -327,7 +327,47 @@ local function importAnimations(sprite, packdir, animationSet, args)
     return sprite
 end
 
-local function importItemAnimations(sprite)
+local function importItemAnimations(sprite, packdir, animationSet, args)
+    local enabledAnimations = args.animationsExportEnabled
+    sprite:deleteLayer(sprite.layers[1])
+
+    local animationFolders = {}
+    for _, animName in ipairs(animationSet) do
+        if enabledAnimations[animName] ~= false then
+            local animation = animationSet[animName]
+            local folder = app.fs.joinPath(packdir, animation.folder, animName)
+            if app.fs.isDirectory(folder) then
+                animationFolders[#animationFolders+1] = folder
+            end
+        end
+    end
+
+    local layerIdxs = makeItemLayers(sprite, animationFolders)
+
+    local paletteColors = {}
+    local f1 = 1
+    for _, animName in ipairs(animationSet) do
+        if enabledAnimations[animName] ~= false then
+            local animation = animationSet[animName]
+
+            local folder = app.fs.joinPath(packdir, animation.folder, animName)
+            local withTags = true
+
+            for _, file in ipairs(app.fs.listFiles(folder)) do
+                file = app.fs.joinPath(folder, file)
+                local animSprite = animationSpriteFromFile(file, animation, sprite.height, withTags)
+                if animSprite then
+                    local i = layerIdxs[app.fs.fileTitle(file)]
+                    importAnimationSprite(sprite, i, f1, animSprite, animName)
+                    gatherPaletteColors(paletteColors, animSprite)
+                    animSprite:close()
+                    withTags = false
+                end
+            end
+            f1 = #sprite.frames
+        end
+    end
+    usePaletteColors(sprite, paletteColors)
     return sprite
 end
 
@@ -351,7 +391,7 @@ function import.FromPack(args)
 
     standardanim1 = app.fs.joinPath(standarddir, standardanim1)
     if app.fs.isDirectory(standardanim1) then
-        return importItemAnimations(sprite)
+        return importItemAnimations(sprite, packdir, LPCAnimations, args)
     elseif app.fs.isFile(standardanim1) then
         return importAnimations(sprite, packdir, LPCAnimations, args)
     end
