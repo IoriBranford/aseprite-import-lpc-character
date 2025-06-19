@@ -202,7 +202,6 @@ end
 
 local function makeItemLayers(sprite, animpaths)
     local layers = {}
-    sprite:deleteLayer(sprite.layers[1])
     for _, animpath in ipairs(animpaths) do
         for _, layerfile in ipairs(app.fs.listFiles(animpath)) do
             local layername = app.fs.fileTitle(layerfile)
@@ -269,14 +268,10 @@ function import.FromPack(args)
         table.sort(itemsfiles)
 
         sprite:deleteLayer(sprite.layers[1])
-        for _, itemfile in ipairs(itemsfiles) do
-            local layer = sprite:newLayer()
-            layer.name = app.fs.fileTitle(itemfile)
-        end
+        makeItemLayers(sprite, {itemsdir})
 
         local extrasprite
         local withTags = true
-        local layers = sprite.layers
         for i, itemfile in ipairs(itemsfiles) do
             itemfile = app.fs.joinPath(itemsdir, itemfile)
             local itemsheetsprite = app.fs.isFile(itemfile) and app.open(itemfile)
@@ -285,7 +280,7 @@ function import.FromPack(args)
                 copyPaletteColors(paletteColors, itemsheetsprite)
                 itemsheetsprite:close()
 
-                local layer = layers[i]
+                local layer = sprite.layers[i]
 
                 importStandardSheet(sprite, layer, itemsheet,
                     StandardAnimations, StandardSheetRects, args, withTags)
