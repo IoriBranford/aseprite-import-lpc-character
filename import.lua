@@ -169,11 +169,9 @@ local function extractExtraSheet(sheet)
     local extraheight = sheet.height - StandardSheetHeight
     if extraheight <= 0 then return end
 
-    local rect = {0, StandardSheetHeight, sheet.width, extraheight}
-    local extraImage = Image(sheet, rect)
-    local extraSprite = Sprite(rect.width, rect.height)
-    extraSprite:newCel(extraSprite.layers[1], 1, extraImage)
-    return extraSprite
+    local rect = Rectangle(0, StandardSheetHeight, sheet.width, extraheight)
+    local image = Image(sheet, rect)
+    return not image:isEmpty() and image
 end
 
 ---@param sprite Sprite
@@ -229,7 +227,11 @@ function import.FromSheet(sheetsprite, args)
     app.transaction("Import LPC Character Sheet", function()
         local sheet = Image(sheetsprite)
         importStandardSheet(sprite, 1, sheet, StandardAnimations, StandardSheetRects, args)
-        extractExtraSheet(sheet)
+        local extrasheet = extractExtraSheet(sheet)
+        if extrasheet then
+            local extraSprite = Sprite(extrasheet.width, extrasheet.height)
+            extraSprite:newCel(extraSprite.layers[1], 1, extrasheet)
+        end
     end)
     return sprite
 end
