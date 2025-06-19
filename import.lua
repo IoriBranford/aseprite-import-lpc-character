@@ -110,8 +110,11 @@ local function processAnimationSprite(animSprite, animation, targetFrameSize)
         frameBounds = Rectangle(0, 0, sheetFrameSize, sheetFrameSize),
     }
 
-    tagAnimationSprite(animSprite, animation, columns, rows)
     growSprite(animSprite, targetFrameSize)
+
+    if animation then
+        tagAnimationSprite(animSprite, animation, columns, rows)
+    end
 end
 
 ---@param animFile string
