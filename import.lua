@@ -241,13 +241,14 @@ function import.FromSheet(sheetsprite, args)
     return sprite
 end
 
-local function copyPaletteColors(toPaletteMap, toPaletteArray, fromSprite)
+local function copyPaletteColors(paletteColors, fromSprite)
     local inpalette = fromSprite.palettes[1]
     for i = 0, #inpalette-1 do
         local rgba = inpalette:getColor(i).rgbaPixel
-        if not toPaletteMap[rgba] then
-            toPaletteMap[rgba] = true
-            toPaletteArray[#toPaletteArray+1] = rgba
+        local rgbaKey = tostring(rgba)
+        if not paletteColors[rgbaKey] then
+            paletteColors[rgbaKey] = true
+            paletteColors[#paletteColors+1] = rgba
         end
     end
 end
@@ -259,8 +260,7 @@ function import.FromPack(args)
 
     local packdir = app.fs.filePath(args.inputFile)
     local enabledAnimations = args.animationsExportEnabled
-    local paletteMap = {}
-    local paletteArray = {}
+    local paletteColors = {}
 
     local itemsdir = app.fs.joinPath(packdir, "items")
     if app.fs.isDirectory(itemsdir) then
@@ -281,7 +281,7 @@ function import.FromPack(args)
             local itemsheetsprite = app.fs.isFile(itemfile) and app.open(itemfile)
             if itemsheetsprite then
                 local itemsheet = Image(itemsheetsprite)
-                copyPaletteColors(paletteMap, paletteArray, itemsheetsprite)
+                copyPaletteColors(paletteColors, itemsheetsprite)
                 itemsheetsprite:close()
 
                 local layer = layers[i]
@@ -321,7 +321,7 @@ function import.FromPack(args)
                     local animSprite = animationSpriteFromFile(animPath..".png", animation, size, true)
                     if animSprite then
                         importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
-                        copyPaletteColors(paletteMap, paletteArray, animSprite)
+                        copyPaletteColors(paletteColors, animSprite)
                         animSprite:close()
                     end
                 end
@@ -329,9 +329,9 @@ function import.FromPack(args)
         end
     end
 
-    local palette = Palette(#paletteArray)
-    for i = 1, #paletteArray do
-        palette:setColor(i-1, paletteArray[i])
+    local palette = Palette(#paletteColors)
+    for i = 1, #paletteColors do
+        palette:setColor(i-1, paletteColors[i])
     end
     sprite:setPalette(palette)
 
