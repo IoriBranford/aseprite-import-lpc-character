@@ -181,12 +181,14 @@ end
 local function importStandardSheet(sprite, layer, sheet, animationSet, animationrects, args)
     local enabledAnimations = args.animationsExportEnabled
 
+    local f1 = 1
     for _, basename in ipairs(animationSet) do
         local animation = enabledAnimations[basename] and animationSet[basename]
         local srcrect = animationrects and animationrects[basename]
         if animation and srcrect then
             local animSprite = animationSpriteFromSheetRect(sheet, srcrect, animation, sprite.height)
-            importAnimationSprite(sprite, layer, #sprite.frames, animSprite, basename)
+            importAnimationSprite(sprite, layer, f1, animSprite, basename)
+            f1 = f1 + #animSprite.frames
             animSprite:close()
         end
     end
