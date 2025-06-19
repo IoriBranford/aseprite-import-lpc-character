@@ -333,12 +333,10 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
 
     local animationFolders = {}
     for _, animName in ipairs(animationSet) do
-        if enabledAnimations[animName] ~= false then
-            local animation = animationSet[animName]
-            local folder = app.fs.joinPath(packdir, animation.folder, animName)
-            if app.fs.isDirectory(folder) then
-                animationFolders[#animationFolders+1] = folder
-            end
+        local animation = animationSet[animName]
+        local folder = app.fs.joinPath(packdir, animation.folder, animName)
+        if app.fs.isDirectory(folder) then
+            animationFolders[#animationFolders+1] = folder
         end
     end
 
