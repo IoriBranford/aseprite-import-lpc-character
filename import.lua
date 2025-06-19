@@ -274,16 +274,7 @@ function import.FromPack(args)
                 local animSprite = animationSpriteFromFile(animPath..".png", animation, size)
                 if animSprite then
                     importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
-
-                    local inpalette = animSprite.palettes[1]
-                    for i = 0, #inpalette-1 do
-                        local rgba = inpalette:getColor(i).rgbaPixel
-                        if not paletteMap[rgba] then
-                            paletteMap[rgba] = true
-                            paletteArray[#paletteArray+1] = rgba
-                        end
-                    end
-
+                    copyPaletteColors(paletteMap, paletteArray, animSprite)
                     animSprite:close()
                 end
             end
