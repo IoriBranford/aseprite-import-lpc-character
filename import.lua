@@ -184,14 +184,14 @@ end
 ---@param sheet Image
 ---@param animationSet AnimationSet
 ---@param args ImportLPCCharacterArgs
-local function importStandardSheet(sprite, layer, sheet, animationSet, animationrects, args)
+local function importStandardSheet(sprite, layer, sheet, animationSet, animationrects, args, withTags)
     local enabledAnimations = args.animationsExportEnabled
 
     local f1 = 1
     for _, basename in ipairs(animationSet) do
-        local animation = enabledAnimations[basename] and animationSet[basename]
-        local srcrect = animationrects and animationrects[basename]
-        if animation and srcrect then
+        local srcrect = enabledAnimations[basename]  and animationrects[basename]
+        if srcrect then
+            local animation = withTags and animationSet[basename]
             local animSprite = animationSpriteFromSheetRect(sheet, srcrect, animation, sprite.height)
             importAnimationSprite(sprite, layer, f1, animSprite, basename)
             f1 = f1 + #animSprite.frames
@@ -231,7 +231,7 @@ function import.FromSheet(sheetsprite, args)
     sprite.filename = args.outputFile
     app.transaction("Import LPC Character Sheet", function()
         local sheet = Image(sheetsprite)
-        importStandardSheet(sprite, 1, sheet, StandardAnimations, StandardSheetRects, args)
+        importStandardSheet(sprite, 1, sheet, StandardAnimations, StandardSheetRects, args, true)
         local extrasheet = extractExtraSheet(sheet)
         if extrasheet then
             local extraSprite = Sprite(extrasheet.width, extrasheet.height)
