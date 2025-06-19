@@ -241,7 +241,7 @@ function import.FromSheet(sheetsprite, args)
     return sprite
 end
 
-local function copyPaletteColors(paletteColors, fromSprite)
+local function gatherPaletteColors(paletteColors, fromSprite)
     local inpalette = fromSprite.palettes[1]
     for i = 0, #inpalette-1 do
         local rgba = inpalette:getColor(i).rgbaPixel
@@ -251,6 +251,14 @@ local function copyPaletteColors(paletteColors, fromSprite)
             paletteColors[#paletteColors+1] = rgba
         end
     end
+end
+
+local function usePaletteColors(sprite, paletteColors)
+    local palette = Palette(#paletteColors)
+    for i = 1, #paletteColors do
+        palette:setColor(i-1, paletteColors[i])
+    end
+    sprite:setPalette(palette)
 end
 
 function import.FromPack(args)
@@ -277,7 +285,7 @@ function import.FromPack(args)
             local itemsheetsprite = app.fs.isFile(itemfile) and app.open(itemfile)
             if itemsheetsprite then
                 local itemsheet = Image(itemsheetsprite)
-                copyPaletteColors(paletteColors, itemsheetsprite)
+                gatherPaletteColors(paletteColors, itemsheetsprite)
                 itemsheetsprite:close()
 
                 local layer = sprite.layers[i]
@@ -317,7 +325,7 @@ function import.FromPack(args)
                     local animSprite = animationSpriteFromFile(animPath..".png", animation, size, true)
                     if animSprite then
                         importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
-                        copyPaletteColors(paletteColors, animSprite)
+                        gatherPaletteColors(paletteColors, animSprite)
                         animSprite:close()
                     end
                 end
@@ -325,11 +333,7 @@ function import.FromPack(args)
         end
     end
 
-    local palette = Palette(#paletteColors)
-    for i = 1, #paletteColors do
-        palette:setColor(i-1, paletteColors[i])
-    end
-    sprite:setPalette(palette)
+    usePaletteColors(sprite, paletteColors)
 
     return sprite
 end
