@@ -236,6 +236,7 @@ function import.FromSheet(sheetsprite, args)
         if extrasheet then
             local extraSprite = Sprite(extrasheet.width, extrasheet.height)
             extraSprite:newCel(extraSprite.layers[1], 1, extrasheet)
+            extraSprite:saveAs(app.fs.filePathAndTitle(sprite.filename)..".extra.ase")
         end
     end)
     return sprite
