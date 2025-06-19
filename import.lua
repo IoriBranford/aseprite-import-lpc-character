@@ -98,7 +98,7 @@ end
 ---@param animSprite Sprite
 ---@param animation LPCAnimation
 ---@param targetFrameSize integer
-local function processAnimationSprite(animSprite, animation, targetFrameSize)
+local function processAnimationSprite(animSprite, animation, targetFrameSize, withTags)
     local sheetFrameSize = animation.s or StandardFrameSize
     local columns = math.floor(animSprite.width / sheetFrameSize)
     local rows = math.floor(animSprite.height / sheetFrameSize)
@@ -112,7 +112,7 @@ local function processAnimationSprite(animSprite, animation, targetFrameSize)
 
     growSprite(animSprite, targetFrameSize)
 
-    if animation then
+    if withTags then
         tagAnimationSprite(animSprite, animation, columns, rows)
     end
 end
@@ -121,10 +121,10 @@ end
 ---@param animation LPCAnimation
 ---@param targetFrameSize integer
 ---@return Sprite?
-local function animationSpriteFromFile(animFile, animation, targetFrameSize)
+local function animationSpriteFromFile(animFile, animation, targetFrameSize, withTags)
     local animSprite = app.fs.isFile(animFile) and app.open(animFile)
     if not animSprite then return end
-    processAnimationSprite(animSprite, animation, targetFrameSize)
+    processAnimationSprite(animSprite, animation, targetFrameSize, withTags)
     return animSprite
 end
 
@@ -133,11 +133,11 @@ end
 ---@param animation LPCAnimation
 ---@param targetFrameSize integer
 ---@return Sprite
-local function animationSpriteFromSheetRect(sheet, rect, animation, targetFrameSize)
+local function animationSpriteFromSheetRect(sheet, rect, animation, targetFrameSize, withTags)
     local animImage = Image(sheet, Rectangle(rect))
     local animSprite = Sprite(animImage.width, animImage.height)
     animSprite:newCel(animSprite.layers[1], 1, animImage)
-    processAnimationSprite(animSprite, animation, targetFrameSize)
+    processAnimationSprite(animSprite, animation, targetFrameSize, withTags)
     return animSprite
 end
 
@@ -189,10 +189,10 @@ local function importStandardSheet(sprite, layer, sheet, animationSet, animation
 
     local f1 = 1
     for _, basename in ipairs(animationSet) do
-        local srcrect = enabledAnimations[basename]  and animationrects[basename]
-        if srcrect then
-            local animation = withTags and animationSet[basename]
-            local animSprite = animationSpriteFromSheetRect(sheet, srcrect, animation, sprite.height)
+        local animation = enabledAnimations[basename] and animationSet[basename]
+        local srcrect = animationrects and animationrects[basename]
+        if animation and srcrect then
+            local animSprite = animationSpriteFromSheetRect(sheet, srcrect, animation, sprite.height, withTags)
             importAnimationSprite(sprite, layer, f1, animSprite, basename)
             f1 = f1 + #animSprite.frames
             animSprite:close()
@@ -271,7 +271,7 @@ function import.FromPack(args)
             if app.fs.isDirectory(animPath) then
                 -- TODO animation's item sheets
             else
-                local animSprite = animationSpriteFromFile(animPath..".png", animation, size)
+                local animSprite = animationSpriteFromFile(animPath..".png", animation, size, true)
                 if animSprite then
                     importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
                     copyPaletteColors(paletteMap, paletteArray, animSprite)
