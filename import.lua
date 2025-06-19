@@ -131,9 +131,9 @@ end
 ---@param targetFrameSize integer
 ---@return Sprite
 local function animationSpriteFromSheetRect(sheet, rect, animation, targetFrameSize)
-    local animImage = Image(sheet, rect)
-    local animSprite = Sprite(rect.width, rect.height)
-    animSprite:newCel(animSprite.layers[1], 1, animImage, {-rect.x, -rect.y})
+    local animImage = Image(sheet, Rectangle(rect))
+    local animSprite = Sprite(animImage.width, animImage.height)
+    animSprite:newCel(animSprite.layers[1], 1, animImage)
     processAnimationSprite(animSprite, animation, targetFrameSize)
     return animSprite
 end
