@@ -29,7 +29,10 @@ local function copyCels(n, toSprite, toLayer, toF1, fromSprite, fromLayer, fromF
     for i = 0, n-1 do
         local fromCel = fromLayer:cel(fromF1 + i)
         if fromCel then
-            toSprite:newCel(toLayer, toF1 + i, fromCel.image, fromCel.position)
+            local celImage = fromCel.image
+            if celImage and not celImage:isEmpty() then
+                toSprite:newCel(toLayer, toF1 + i, celImage, fromCel.position)
+            end
         end
     end
 end
