@@ -262,20 +262,68 @@ function import.FromPack(args)
     local paletteMap = {}
     local paletteArray = {}
 
-    local animationSet = LPCAnimations
-    for _, animName in ipairs(animationSet) do
-        if enabledAnimations[animName] ~= false then
-            local animation = animationSet[animName]
+    local itemsdir = app.fs.joinPath(packdir, "items")
+    if app.fs.isDirectory(itemsdir) then
+        local itemsfiles = app.fs.listFiles(itemsdir)
+        table.sort(itemsfiles)
 
-            local animPath = app.fs.joinPath(packdir, animation.folder, animName)
-            if app.fs.isDirectory(animPath) then
-                -- TODO animation's item sheets
-            else
-                local animSprite = animationSpriteFromFile(animPath..".png", animation, size, true)
-                if animSprite then
-                    importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
-                    copyPaletteColors(paletteMap, paletteArray, animSprite)
-                    animSprite:close()
+        sprite:deleteLayer(sprite.layers[1])
+        for _, itemfile in ipairs(itemsfiles) do
+            local layer = sprite:newLayer()
+            layer.name = app.fs.fileTitle(itemfile)
+        end
+
+        local extrasprite
+        local withTags = true
+        local layers = sprite.layers
+        for i, itemfile in ipairs(itemsfiles) do
+            itemfile = app.fs.joinPath(itemsdir, itemfile)
+            local itemsheetsprite = app.fs.isFile(itemfile) and app.open(itemfile)
+            if itemsheetsprite then
+                local itemsheet = Image(itemsheetsprite)
+                copyPaletteColors(paletteMap, paletteArray, itemsheetsprite)
+                itemsheetsprite:close()
+
+                local layer = layers[i]
+
+                importStandardSheet(sprite, layer, itemsheet,
+                    StandardAnimations, StandardSheetRects, args, withTags)
+
+                withTags = false
+
+                local extrasheet = extractExtraSheet(itemsheet)
+                if extrasheet and not extrasprite then
+                    extrasprite = Sprite(extrasheet.width, extrasheet.height)
+                    extrasprite:deleteLayer(extrasprite.layers[1])
+                end
+                if extrasprite then
+                    local extralayer = extrasprite:newLayer()
+                    extralayer.name = layer.name
+                    if extrasheet then
+                        extrasprite:newCel(extralayer, 1, extrasheet)
+                    end
+                end
+            end
+        end
+        if extrasprite then
+            extrasprite:saveAs(app.fs.filePathAndTitle(sprite.filename)..".extra.ase")
+        end
+    else
+        local animationSet = LPCAnimations
+        for _, animName in ipairs(animationSet) do
+            if enabledAnimations[animName] ~= false then
+                local animation = animationSet[animName]
+
+                local animPath = app.fs.joinPath(packdir, animation.folder, animName)
+                if app.fs.isDirectory(animPath) then
+                    -- TODO animation's item sheets
+                else
+                    local animSprite = animationSpriteFromFile(animPath..".png", animation, size, true)
+                    if animSprite then
+                        importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
+                        copyPaletteColors(paletteMap, paletteArray, animSprite)
+                        animSprite:close()
+                    end
                 end
             end
         end
