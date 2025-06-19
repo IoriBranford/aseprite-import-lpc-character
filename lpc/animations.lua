@@ -35,7 +35,7 @@ StandardAnimations = {
     walk = {
         parts = {
             "Stand", "Move",
-            Stand = { 0, 0 }, Move = { 1, 7 }
+            Stand = { 0, 0 }, Move = { 1, 8 }
         }
     },
     slash = {

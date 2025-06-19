@@ -7,7 +7,7 @@ StandardSheetRects = {
     "combat_idle", "backslash", "halfslash",
     spellcast = { x = 0, y = 0, width = 448, height = 256 },
     thrust = { x = 0, y = 256, width = 512, height = 256 },
-    walk = { x = 0, y = 512, width = 512, height = 256 },
+    walk = { x = 0, y = 512, width = 576, height = 256 },
     slash = { x = 0, y = 768, width = 384, height = 256 },
     shoot = { x = 0, y = 1024, width = 832, height = 256 },
     hurt = { x = 0, y = 1280, width = 384, height = 64 },
