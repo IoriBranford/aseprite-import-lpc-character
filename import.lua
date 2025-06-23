@@ -200,6 +200,9 @@ local function importStandardSheet(sprite, layer, sheet, animationSet, animation
     end
 end
 
+---@param sprite Sprite
+---@param animpaths string[]
+---@return table
 local function makeItemLayers(sprite, animpaths)
     local layers = {}
     for _, animpath in ipairs(animpaths) do
@@ -241,6 +244,8 @@ function import.FromSheet(sheetsprite, args)
     return sprite
 end
 
+---@param paletteColors {[string]:boolean}|integer[]
+---@param fromSprite Sprite
 local function gatherPaletteColors(paletteColors, fromSprite)
     local inpalette = fromSprite.palettes[1]
     for i = 0, #inpalette-1 do
@@ -253,6 +258,8 @@ local function gatherPaletteColors(paletteColors, fromSprite)
     end
 end
 
+---@param sprite Sprite
+---@param paletteColors {[string]:boolean}|integer[]
 local function usePaletteColors(sprite, paletteColors)
     local palette = Palette(#paletteColors)
     for i = 1, #paletteColors do
@@ -261,6 +268,11 @@ local function usePaletteColors(sprite, paletteColors)
     sprite:setPalette(palette)
 end
 
+---@param sprite Sprite
+---@param itemsdir string
+---@param args ImportLPCCharacterArgs
+---@return Sprite
+---@return Sprite?
 local function importItemSheets(sprite, itemsdir, args)
     local paletteColors = {}
     local files = app.fs.listFiles(itemsdir)
@@ -307,6 +319,11 @@ local function importItemSheets(sprite, itemsdir, args)
     return sprite, extrasprite
 end
 
+---@param sprite Sprite
+---@param packdir string
+---@param animationSet AnimationSet
+---@param args ImportLPCCharacterArgs
+---@return Sprite
 local function importAnimations(sprite, packdir, animationSet, args)
     local enabledAnimations = args.animationsExportEnabled
     local paletteColors = {}
@@ -327,6 +344,11 @@ local function importAnimations(sprite, packdir, animationSet, args)
     return sprite
 end
 
+---@param sprite Sprite
+---@param packdir string
+---@param animationSet AnimationSet
+---@param args ImportLPCCharacterArgs
+---@return Sprite
 local function importItemAnimations(sprite, packdir, animationSet, args)
     local enabledAnimations = args.animationsExportEnabled
     sprite:deleteLayer(sprite.layers[1])
@@ -369,6 +391,8 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
     return sprite
 end
 
+---@param args ImportLPCCharacterArgs
+---@return Sprite
 function import.FromPack(args)
     local size = args.size
     local sprite = Sprite(size, size)
