@@ -136,15 +136,42 @@ function ImportLPCCharacterDialog(args)
     end
 
     dialog:file {
-        id = "fileAnimationOptions",
-        label = "Load options from CSV",
+        id = "fileNewAnimationCsv",
+        title = "Create new CSV",
+        label = "New CSV",
+        save = true,
+        filetypes = {"csv"},
+        onchange = function (t)
+            local path = dialog.data.fileNewAnimationCsv
+            ---@cast path string
+            if app.fs.isDirectory(path)
+            or not app.fs.isDirectory(app.fs.filePath(path)) then
+                return
+            end
+
+            local ok, err = args:newAnimationOptionsCsv(path)
+            if ok then
+                -- TODO open folder or file in system app
+                -- app.command.OpenBrowser({filename = fileName})
+                -- app.command.OpenInFolder()
+                -- app.command.OpenWithApp()
+            else
+                print(err)
+            end
+        end
+    }
+
+    dialog:file {
+        id = "fileLoadAnimationCsv",
+        title = "Load from CSV",
+        label = "Load CSV",
         filetypes = {"csv"},
         open = true,
         onchange = function ()
-            local fileName = dialog.data.fileAnimationOptions
-            ---@cast fileName string
-            if app.fs.isFile(fileName) then
-                args:loadAnimationOptionsCsv(fileName)
+            local path = dialog.data.fileLoadAnimationCsv
+            ---@cast path string
+            if app.fs.isFile(path) then
+                args:loadAnimationOptionsCsv(path)
                 updateAnimationOptions()
             end
         end
