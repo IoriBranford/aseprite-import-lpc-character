@@ -93,24 +93,32 @@ function ImportLPCCharacterDialog(args)
             local checkboxId = "checkEnable"..name
             local renameId = "entryRename"..name
             local frametimeId = "numberFrameTime"..name
+            local frametime = animArgs.frametime
             if dialog.data[checkboxId] ~= animArgs.enabled then
                 dialog:modify {
                     id = checkboxId,
                     selected = animArgs.enabled
                 }
+                dialog:modify {
+                    id = renameId,
+                    enabled = animArgs.enabled
+                }
+                if frametime then
+                    dialog:modify {
+                        id = frametimeId,
+                        enabled = animArgs.enabled
+                    }
+                end
             end
             if dialog.data[renameId] ~= animArgs.rename then
                 dialog:modify {
                     id = renameId,
-                    enabled = animArgs.enabled,
                     text = animArgs.rename
                 }
             end
-            local frametime = animArgs.frametime
             if frametime and dialog.data[frametimeId] ~= frametime then
                 dialog:modify {
                     id = frametimeId,
-                    enabled = animArgs.enabled,
                     text = tostring(animArgs.frametime)
                 }
             end
