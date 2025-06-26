@@ -78,6 +78,18 @@ function CharacterOptions:newAnimationOptionsCsv(csvFileName)
         local row = string.format("%s,%s,%s,%s\n",
             name, true, name, DefaultFrameTime)
         csvFile:write(row)
+
+        local animation = LPCAnimations[name]
+        local parts = animation.parts
+        if parts then
+            for _, part in ipairs(parts) do
+                local partname = name..part
+
+                local partrow = string.format("%s,%s,%s,%s\n",
+                    partname, true, partname, "n/a")
+                csvFile:write(partrow)
+            end
+        end
     end
     csvFile:close()
     return true
