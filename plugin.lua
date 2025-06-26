@@ -1,6 +1,6 @@
 require "lpc"
 local import = require "import"
-local csv = require "ftcsv"
+local options = require "options"
 
 local function openInputFile(inputFile)
     if not inputFile then
@@ -28,48 +28,8 @@ local function openInputFile(inputFile)
     end
 end
 
----@param inputFile string
----@param animationArgs {[string]:ImportAnimationArgs}
-local function addAnimationOptionsFromFile(inputFile, animationArgs)
-    local t = csv.parse(inputFile)
-    for _, inputArgs in ipairs(t) do
-        local animArgs = animationArgs[inputArgs.animation]
-        if animArgs then
-            local frametime = tonumber(inputArgs.frametime)
-            if frametime then
-                animArgs.frametime = frametime
-            end
-
-            local enabled = inputArgs.enabled
-            enabled = enabled and enabled:lower()
-            animArgs.enabled = enabled ~= "false"
-
-            local rename = inputArgs.rename or ""
-            if rename ~= "" then
-                animArgs.rename = rename
-            end
-        else
-            print("Unknown animation "
-                ..inputArgs.animation
-                .." referenced in "
-                ..inputFile)
-        end
-    end
-end
-
-local function setAnimationOptionsFromFile(inputFile, animationArgs)
-    for name, animArgs in pairs(animationArgs) do
-        animArgs.enabled = false
-        animArgs.rename = name
-        if animArgs.frametime then
-            animArgs.frametime = 100
-        end
-    end
-    addAnimationOptionsFromFile(inputFile, animationArgs)
-end
-
 ---comment
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 function ImportLPCCharacterDialog(args)
     local dialog = Dialog("Import LPC Character")
 
@@ -155,20 +115,19 @@ function ImportLPCCharacterDialog(args)
         open = true,
         onchange = function ()
             local fileName = dialog.data.fileAnimationOptions
-            setAnimationOptionsFromFile(fileName, args.animations)
+            ---@cast fileName string
+            args:loadAnimationOptionsCsv(fileName)
             updateAnimationOptions()
         end
     }
 
     local function setAllAnimationFrameTimes(frametime)
+        args:setGlobalFrameTime(frametime)
         for _, name in ipairs(LPCAnimations) do
             dialog:modify({
                 id = "numberFrameTime"..name,
                 text = tostring(frametime),
             })
-            if args.animations[name].frametime then
-                args.animations[name].frametime = frametime
-            end
         end
     end
 
@@ -327,8 +286,10 @@ end
 ---@param plugin Plugin
 function init(plugin)
     local args = plugin.preferences.lastargs
-    if not args then
-        args = import.NewArgs()
+    if args then
+        options.Init(args)
+    else
+        args = options.New()
         plugin.preferences.lastargs = args
     end
 

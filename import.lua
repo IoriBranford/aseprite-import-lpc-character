@@ -157,7 +157,7 @@ end
 ---@param charF1 integer
 ---@param animSprite Sprite
 ---@param animName string
----@param animationArgs {[string]: ImportAnimationArgs}
+---@param animationArgs {[string]: AnimationOptions}
 local function importAnimationSpriteTags(charSprite, charF1, animSprite, animName, animationArgs)
     if #animSprite.tags <= 0 then
         return
@@ -201,7 +201,7 @@ end
 ---@param layer Layer|integer
 ---@param sheet Image
 ---@param animationSet AnimationSet
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 local function importStandardSheet(sprite, layer, sheet, animationSet, animationrects, args, withTags)
     local animationArgs = args.animations
 
@@ -245,7 +245,7 @@ end
 local import = {}
 
 ---@param sheetsprite Sprite
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 function import.FromSheet(sheetsprite, args)
     local sprite = Sprite(args.size, args.size)
     sprite:setPalette(sheetsprite.palettes[1])
@@ -289,7 +289,7 @@ end
 
 ---@param sprite Sprite
 ---@param itemsdir string
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 ---@return Sprite
 ---@return Sprite?
 local function importItemSheets(sprite, itemsdir, args)
@@ -341,7 +341,7 @@ end
 ---@param sprite Sprite
 ---@param packdir string
 ---@param animationSet AnimationSet
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 ---@return Sprite
 local function importAnimations(sprite, packdir, animationSet, args)
     local animationArgs = args.animations
@@ -369,7 +369,7 @@ end
 ---@param sprite Sprite
 ---@param packdir string
 ---@param animationSet AnimationSet
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 ---@return Sprite
 local function importItemAnimations(sprite, packdir, animationSet, args)
     sprite:deleteLayer(sprite.layers[1])
@@ -415,7 +415,7 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
     return sprite
 end
 
----@param args ImportLPCCharacterArgs
+---@param args CharacterOptions
 ---@return Sprite
 function import.FromPack(args)
     local size = args.size
@@ -442,47 +442,6 @@ function import.FromPack(args)
         return importAnimations(sprite, packdir, LPCAnimations, args)
     end
     error("unknown pack structure")
-end
-
----@class ImportAnimationArgs
----@field rename string
----@field enabled boolean
----@field frametime number? in msecs. parts inherit from their parents instead of having their own
-
----@class ImportLPCCharacterArgs
----@field inputFile string
----@field outputFile string
----@field globalframetime number in msecs
----@field size integer
----@field animations {[string]: ImportAnimationArgs}
-
----@return ImportLPCCharacterArgs
-function import.NewArgs()
-    local animations = {} ---@type {[string]: ImportAnimationArgs}
-    for _, name in ipairs(LPCAnimations) do
-        animations[name] = {
-            rename = name,
-            enabled = true,
-            frametime = 100
-        }
-        local animation = LPCAnimations[name]
-        local parts = animation.parts
-        if parts then
-            for _, part in ipairs(parts) do
-                local partname = name..part
-                animations[partname] = {
-                    enabled = true,
-                    rename = partname,
-                }
-            end
-        end
-    end
-
-    return {
-        globalframetime = 100,
-        size = 64,
-        animations = animations
-    }
 end
 
 return import
