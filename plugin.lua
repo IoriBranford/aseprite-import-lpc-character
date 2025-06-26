@@ -90,7 +90,7 @@ function ImportLPCCharacterDialog(args)
         for _, name in ipairs(LPCAnimations) do
             dialog:modify({
                 id = "numberFrameTime"..name,
-                text = tostring(math.floor(frametime * 1000)),
+                text = tostring(frametime),
             })
             if args.animations[name].frametime then
                 args.animations[name].frametime = frametime
@@ -101,10 +101,10 @@ function ImportLPCCharacterDialog(args)
     dialog:number({
         id = "numberGlobalFrameTime",
         label = "All frame ms",
-        text = tostring(math.floor(args.globalframetime * 1000)),
+        text = tostring(args.globalframetime),
         decimals = 0,
         onchange = function()
-            args.globalframetime = math.max(0, dialog.data.numberGlobalFrameTime / 1000)
+            args.globalframetime = math.max(0, dialog.data.numberGlobalFrameTime)
             setAllAnimationFrameTimes(args.globalframetime)
         end
     })
@@ -178,7 +178,7 @@ function ImportLPCCharacterDialog(args)
         dialog:number({
             id = id,
             hexpand = false,
-            text = tostring(math.floor(args.animations[name].frametime * 1000)),
+            text = tostring(args.animations[name].frametime),
             decimals = 0,
             onchange = function()
                 local frametime = dialog.data[id]
@@ -190,7 +190,7 @@ function ImportLPCCharacterDialog(args)
                     --     text = "0",
                     -- }
                 end
-                args.animations[name].frametime = frametime / 1000
+                args.animations[name].frametime = frametime
             end
         })
     end

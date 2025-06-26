@@ -178,6 +178,7 @@ local function importAnimationSpriteTags(charSprite, charF1, animSprite, animNam
         tag.aniDir = animTag.aniDir
         local frametime = animArgs.frametime
         if frametime then
+            frametime = frametime / 1000
             for f = from, to do
                 local frame = charSprite.frames[f]
                 frame.duration = frametime
@@ -446,12 +447,12 @@ end
 ---@class ImportAnimationArgs
 ---@field rename string
 ---@field enabled boolean
----@field frametime number? in seconds. parts inherit from their parents instead of having their own
+---@field frametime number? in msecs. parts inherit from their parents instead of having their own
 
 ---@class ImportLPCCharacterArgs
 ---@field inputFile string
 ---@field outputFile string
----@field globalframetime number in seconds
+---@field globalframetime number in msecs
 ---@field size integer
 ---@field animations {[string]: ImportAnimationArgs}
 
@@ -462,7 +463,7 @@ function import.NewArgs()
         animations[name] = {
             rename = name,
             enabled = true,
-            frametime = .05
+            frametime = 100
         }
         local animation = LPCAnimations[name]
         local parts = animation.parts
@@ -478,7 +479,7 @@ function import.NewArgs()
     end
 
     return {
-        globalframetime = .05,
+        globalframetime = 100,
         size = 64,
         animations = animations
     }
