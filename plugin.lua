@@ -55,8 +55,12 @@ function ImportLPCCharacterDialog(args)
         open = true,
         save = false,
         onchange = function()
-            args.inputFile = dialog.data.fileInput
-            updateImportButtonEnabled()
+            local path = dialog.data.fileInput
+            ---@cast path string
+            if app.fs.isFile(path) then
+                args.inputFile = path
+                updateImportButtonEnabled()
+            end
         end
     })
     dialog:file({
@@ -67,8 +71,14 @@ function ImportLPCCharacterDialog(args)
         open = false,
         save = true,
         onchange = function()
-            args.outputFile = dialog.data.fileOutput
-            updateImportButtonEnabled()
+            local path = dialog.data.fileOutput
+            ---@cast path string
+            if not app.fs.isDirectory(path)
+            and app.fs.isDirectory(app.fs.filePath(path))
+            then
+                args.outputFile = path
+                updateImportButtonEnabled()
+            end
         end
     })
 
@@ -133,8 +143,10 @@ function ImportLPCCharacterDialog(args)
         onchange = function ()
             local fileName = dialog.data.fileAnimationOptions
             ---@cast fileName string
-            args:loadAnimationOptionsCsv(fileName)
-            updateAnimationOptions()
+            if app.fs.isFile(fileName) then
+                args:loadAnimationOptionsCsv(fileName)
+                updateAnimationOptions()
+            end
         end
     }
 
