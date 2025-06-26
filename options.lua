@@ -70,7 +70,7 @@ end
 function CharacterOptions:newAnimationOptionsCsv(csvFileName)
     local csvFile, err = io.open(csvFileName, "w")
     if not csvFile then
-        return csvFile, err
+        return false, err
     end
 
     csvFile:write("id,enabled,rename,frametime\n")
@@ -80,6 +80,7 @@ function CharacterOptions:newAnimationOptionsCsv(csvFileName)
         csvFile:write(row)
     end
     csvFile:close()
+    return true
 end
 
 ---@param inputFile string
@@ -94,7 +95,7 @@ function CharacterOptions:loadAnimationOptionsCsv(inputFile)
     local inputTable = csv.parse(inputFile)
     local allAnimOptions = self.animations
     for _, inputOptions in ipairs(inputTable) do
-        local animOptions = allAnimOptions[inputOptions.animation]
+        local animOptions = allAnimOptions[inputOptions.id]
         if animOptions then
             if animOptions.frametime then
                 local frametime = tonumber(inputOptions.frametime)
@@ -113,7 +114,7 @@ function CharacterOptions:loadAnimationOptionsCsv(inputFile)
             end
         else
             print("Unknown animation "
-                ..inputOptions.animation
+                ..inputOptions.id
                 .." referenced in "
                 ..inputFile)
         end
