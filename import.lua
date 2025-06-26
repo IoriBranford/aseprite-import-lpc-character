@@ -145,27 +145,44 @@ end
 ---@param charLayer Layer|integer
 ---@param charF1 integer
 ---@param animSprite Sprite
----@param animName string
 ---@return Sprite?
-local function importAnimationSprite(charSprite, charLayer, charF1, animSprite, animName)
+local function importAnimationSpriteCels(charSprite, charLayer, charF1, animSprite)
     growSprite(charSprite, animSprite.height)
     copyCels(#animSprite.frames,
         charSprite, charLayer, charF1,
         animSprite, 1, 1)
+end
+
+---@param charSprite Sprite
+---@param charF1 integer
+---@param animSprite Sprite
+---@param animName string
+---@param animationArgs {[string]: ImportAnimationArgs}
+local function importAnimationSpriteTags(charSprite, charF1, animSprite, animName, animationArgs)
+    if #animSprite.tags <= 0 then
+        return
+    end
 
     -- Avoid creating a tag that goes to the last frame.
     -- If you add a new frame with any tags going to the last frame,
     -- Aseprite extends those tags to the new frame.
-    if #animSprite.tags > 0 then
-        charSprite:newEmptyFrame()
-    end
+    charSprite:newEmptyFrame()
 
     for _, animTag in ipairs(animSprite.tags) do
         local from = charF1 + animTag.fromFrame.frameNumber - 1
         local to = charF1 + animTag.toFrame.frameNumber - 1
         local tag = charSprite:newTag(from, to)
-        tag.name = animName..animTag.name
+        local partname, suffix = animTag.name:match("^(.-)([0123]?)$")
+        local animArgs = animationArgs[animName..partname]
+        tag.name = animArgs.rename..suffix
         tag.aniDir = animTag.aniDir
+        local frametime = animArgs.frametime
+        if frametime then
+            for f = from, to do
+                local frame = charSprite.frames[f]
+                frame.duration = frametime
+            end
+        end
     end
 end
 
@@ -185,15 +202,16 @@ end
 ---@param animationSet AnimationSet
 ---@param args ImportLPCCharacterArgs
 local function importStandardSheet(sprite, layer, sheet, animationSet, animationrects, args, withTags)
-    local enabledAnimations = args.animationsExportEnabled
+    local animationArgs = args.animations
 
     local f1 = 1
     for _, basename in ipairs(animationSet) do
-        local animation = enabledAnimations[basename] and animationSet[basename]
+        local animation = animationArgs[basename].enabled and animationSet[basename]
         local srcrect = animationrects and animationrects[basename]
         if animation and srcrect then
             local animSprite = animationSpriteFromSheetRect(sheet, srcrect, animation, sprite.height, withTags)
-            importAnimationSprite(sprite, layer, f1, animSprite, basename)
+            importAnimationSpriteCels(sprite, layer, f1, animSprite)
+            importAnimationSpriteTags(sprite, f1, animSprite, basename, animationArgs)
             f1 = f1 + #animSprite.frames
             animSprite:close()
         end
@@ -325,16 +343,19 @@ end
 ---@param args ImportLPCCharacterArgs
 ---@return Sprite
 local function importAnimations(sprite, packdir, animationSet, args)
-    local enabledAnimations = args.animationsExportEnabled
+    local animationArgs = args.animations
     local paletteColors = {}
     for _, animName in ipairs(animationSet) do
-        if enabledAnimations[animName] ~= false then
+        local animArgs = animationArgs[animName]
+        if animArgs.enabled ~= false then
             local animation = animationSet[animName]
 
             local file = app.fs.joinPath(packdir, animation.folder, animName..".png")
             local animSprite = animationSpriteFromFile(file, animation, sprite.height, true)
             if animSprite then
-                importAnimationSprite(sprite, 1, #sprite.frames, animSprite, animName)
+                local f1 = #sprite.frames
+                importAnimationSpriteCels(sprite, 1, f1, animSprite)
+                importAnimationSpriteTags(sprite, f1, animSprite, animName, animationArgs)
                 gatherPaletteColors(paletteColors, animSprite)
                 animSprite:close()
             end
@@ -350,7 +371,6 @@ end
 ---@param args ImportLPCCharacterArgs
 ---@return Sprite
 local function importItemAnimations(sprite, packdir, animationSet, args)
-    local enabledAnimations = args.animationsExportEnabled
     sprite:deleteLayer(sprite.layers[1])
 
     local animationFolders = {}
@@ -366,8 +386,10 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
 
     local paletteColors = {}
     local f1 = 1
+    local animationArgs = args.animations
     for _, animName in ipairs(animationSet) do
-        if enabledAnimations[animName] ~= false then
+        local animArgs = animationArgs[animName]
+        if animArgs.enabled ~= false then
             local animation = animationSet[animName]
 
             local folder = app.fs.joinPath(packdir, animation.folder, animName)
@@ -378,7 +400,8 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
                 local animSprite = animationSpriteFromFile(file, animation, sprite.height, withTags)
                 if animSprite then
                     local i = layerIdxs[app.fs.fileTitle(file)]
-                    importAnimationSprite(sprite, i, f1, animSprite, animName)
+                    importAnimationSpriteCels(sprite, i, f1, animSprite)
+                    importAnimationSpriteTags(sprite, f1, animSprite, animName, animationArgs)
                     gatherPaletteColors(paletteColors, animSprite)
                     animSprite:close()
                     withTags = false
@@ -420,31 +443,44 @@ function import.FromPack(args)
     error("unknown pack structure")
 end
 
+---@class ImportAnimationArgs
+---@field rename string
+---@field enabled boolean
+---@field frametime number? in seconds. parts inherit from their parents instead of having their own
+
 ---@class ImportLPCCharacterArgs
 ---@field inputFile string
 ---@field outputFile string
----@field frametime number in seconds
+---@field globalframetime number in seconds
 ---@field size integer
----@field animationsExportEnabled {[string]:boolean}
+---@field animations {[string]: ImportAnimationArgs}
 
 ---@return ImportLPCCharacterArgs
 function import.NewArgs()
-    local animationsExportEnabled = {}
+    local animations = {} ---@type {[string]: ImportAnimationArgs}
     for _, name in ipairs(LPCAnimations) do
-        animationsExportEnabled[name] = true
+        animations[name] = {
+            rename = name,
+            enabled = true,
+            frametime = .05
+        }
         local animation = LPCAnimations[name]
         local parts = animation.parts
         if parts then
             for _, part in ipairs(parts) do
-                animationsExportEnabled[name..part] = true
+                local partname = name..part
+                animations[partname] = {
+                    enabled = true,
+                    rename = partname,
+                }
             end
         end
     end
 
     return {
-        frametime = .05,
+        globalframetime = .05,
         size = 64,
-        animationsExportEnabled = animationsExportEnabled
+        animations = animations
     }
 end
 
