@@ -116,8 +116,8 @@ function ImportLPCCharacterDialog(args)
         text = "Import",
         enabled = (args.inputFile or "") ~= "" and (args.outputFile or "") ~= "",
         onclick = function()
-            ImportLPCCharacter(args)
             dialog:close()
+            assert(ImportLPCCharacter(args))
         end
     })
 

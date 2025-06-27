@@ -478,13 +478,13 @@ function ImportLPCCharacter(args)
     and app.fs.fileName(inputSprite) == "character.json" then
         local outputSprite = importFromPack(args)
         outputSprite:saveAs(args.outputFile)
+        return outputSprite
     elseif inputSprite then
         ---@cast inputSprite Sprite
         local outputSprite = importFromSheet(inputSprite, args)
         inputSprite:close()
         outputSprite:saveAs(args.outputFile)
-    else
-        ---@cast whyNot string
-        app.alert(whyNot)
+        return outputSprite
     end
+    return nil, whyNot
 end
