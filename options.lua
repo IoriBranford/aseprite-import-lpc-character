@@ -10,6 +10,7 @@ AnimationOptions.__index = AnimationOptions
 ---@class CharacterOptions
 ---@field inputFile string
 ---@field outputFile string
+---@field animationCsvFile string
 ---@field globalframetime number in msecs
 ---@field size 64|128|192
 ---@field animations {[string]: AnimationOptions}

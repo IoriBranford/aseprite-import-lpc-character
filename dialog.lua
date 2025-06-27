@@ -162,7 +162,7 @@ function ImportLPCCharacterDialog(args)
     dialog:file {
         id = "fileLoadAnimationCsv",
         title = "Load from CSV",
-        label = "Load CSV",
+        filename = args.animationCsvFile,
         filetypes = {"csv"},
         open = true,
         onchange = function ()
@@ -171,6 +171,7 @@ function ImportLPCCharacterDialog(args)
             if app.fs.isFile(path) then
                 args:loadAnimationOptionsCsv(path)
                 updateAnimationOptions()
+                args.animationCsvFile = path
             end
         end
     }
