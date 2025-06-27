@@ -1,4 +1,5 @@
 local import = require "import"
+require "dialog_animations"
 
 local function openInputFile(inputFile)
     if not inputFile then
@@ -39,10 +40,6 @@ function ImportLPCCharacterDialog(args)
         })
     end
 
-    dialog:tab({
-        id = "tabImport",
-        text = "Import",
-    })
     dialog:file({
         id = "fileInput",
         label = "Input",
@@ -90,53 +87,10 @@ function ImportLPCCharacterDialog(args)
         end
     })
 
-    dialog:tab({
-        id = "tabAnimations",
-        text = "Animations"
-    })
-
-    local function updateAnimationOptions()
-        local animationArgs = args.animations
-        for name, animArgs in pairs(animationArgs) do
-            local checkboxId = "checkEnable"..name
-            local renameId = "entryRename"..name
-            local frametimeId = "numberFrameTime"..name
-            local frametime = animArgs.frametime
-            if dialog.data[checkboxId] ~= animArgs.enabled then
-                dialog:modify {
-                    id = checkboxId,
-                    selected = animArgs.enabled
-                }
-                dialog:modify {
-                    id = renameId,
-                    enabled = animArgs.enabled
-                }
-                if frametime then
-                    dialog:modify {
-                        id = frametimeId,
-                        enabled = animArgs.enabled
-                    }
-                end
-            end
-            if dialog.data[renameId] ~= animArgs.rename then
-                dialog:modify {
-                    id = renameId,
-                    text = animArgs.rename
-                }
-            end
-            if frametime and dialog.data[frametimeId] ~= frametime then
-                dialog:modify {
-                    id = frametimeId,
-                    text = tostring(animArgs.frametime)
-                }
-            end
-        end
-    end
-
     dialog:file {
         id = "fileNewAnimationCsv",
-        title = "Create new CSV",
-        label = "New CSV",
+        title = "Create new animation CSV",
+        label = "New animation CSV",
         save = true,
         filetypes = {"csv"},
         onchange = function (t)
@@ -162,6 +116,7 @@ function ImportLPCCharacterDialog(args)
     dialog:file {
         id = "fileLoadAnimationCsv",
         title = "Load from CSV",
+        label = "Load animation CSV",
         filename = args.animationCsvFile,
         filetypes = {"csv"},
         open = true,
@@ -170,137 +125,17 @@ function ImportLPCCharacterDialog(args)
             ---@cast path string
             if app.fs.isFile(path) then
                 args:loadAnimationOptionsCsv(path)
-                updateAnimationOptions()
                 args.animationCsvFile = path
             end
         end
     }
 
-    local function setAllAnimationFrameTimes(frametime)
-        args:setGlobalFrameTime(frametime)
-        for _, name in ipairs(LPCAnimations) do
-            dialog:modify({
-                id = "numberFrameTime"..name,
-                text = tostring(frametime),
-            })
+    dialog:button {
+        text = "Animation settings...",
+        onclick = function()
+            ImportAnimationsDialog(args)
         end
-    end
-
-    dialog:number({
-        id = "numberGlobalFrameTime",
-        label = "All frame ms",
-        text = tostring(args.globalframetime),
-        decimals = 0,
-        onchange = function()
-            args.globalframetime = math.max(0, dialog.data.numberGlobalFrameTime)
-            setAllAnimationFrameTimes(args.globalframetime)
-        end
-    })
-
-    local function setAnimationPartsCheckboxesEnabled(name, enabled)
-        local animation = LPCAnimations[name]
-        local parts = animation and animation.parts
-        if parts then
-            for _, part in ipairs(parts) do
-                dialog:modify({
-                    id = "checkEnable"..name..part,
-                    enabled = enabled
-                })
-                dialog:modify({
-                    id = "entryRename"..name..part,
-                    enabled = enabled
-                })
-            end
-        end
-    end
-
-    local function setAnimationExportEnabled(name, enabled)
-        args.animations[name].enabled = enabled
-        dialog:modify({
-            id = "entryRename"..name,
-            enabled = enabled,
-        })
-        dialog:modify({
-            id = "numberFrameTime"..name,
-            enabled = enabled,
-        })
-        setAnimationPartsCheckboxesEnabled(name, enabled)
-    end
-
-    local function animationCheckbox(name)
-        local id = "checkEnable"..name
-        dialog:check({
-            id = id,
-            hexpand = false,
-            label = "Import",
-            selected = args.animations[name].enabled,
-            onclick = function()
-                setAnimationExportEnabled(name, dialog.data[id])
-            end,
-        })
-    end
-
-    local function animationRenameField(name, hasframetimeafter)
-        local id = "entryRename"..name
-        local label = hasframetimeafter and "Name & ms" or "Name"
-        dialog:entry({
-            id = id,
-            label = label,
-            text = args.animations[name].rename,
-            onchange = function()
-                local rename = dialog.data[id]
-                if #rename < 1 then
-                    rename = name
-                    -- dialog:modify {
-                    --     id = id,
-                    --     text = name,
-                    -- }
-                end
-                args.animations[name].rename = rename
-            end
-        })
-    end
-
-    local function animationFrameTimeField(name)
-        local id = "numberFrameTime"..name
-        dialog:number({
-            id = id,
-            hexpand = false,
-            text = tostring(args.animations[name].frametime),
-            decimals = 0,
-            onchange = function()
-                local frametime = dialog.data[id]
-                ---@cast frametime number
-                if frametime < 0 then
-                    frametime = 0
-                    -- dialog:modify {
-                    --     id = id,
-                    --     text = "0",
-                    -- }
-                end
-                args.animations[name].frametime = frametime
-            end
-        })
-    end
-
-    for _, name in ipairs(LPCAnimations) do
-        dialog:separator({text = name})
-        animationCheckbox(name)
-        animationRenameField(name, true)
-        animationFrameTimeField(name)
-
-        local animation = LPCAnimations[name]
-        local parts = animation and animation.parts
-        if parts then
-            for _, part in ipairs(parts) do
-                dialog:separator({text = name..part})
-                animationCheckbox(name..part)
-                animationRenameField(name..part)
-            end
-        end
-    end
-
-    dialog:endtabs({})
+    }
 
     dialog:button({
         id = "buttonImport",
@@ -321,17 +156,6 @@ function ImportLPCCharacterDialog(args)
             dialog:close()
         end
     })
-
-    for _, name in ipairs(LPCAnimations) do
-        local exportEnabled = args.animations[name].enabled
-        setAnimationExportEnabled(name, exportEnabled)
-        local checkboxEnabled = true --import.sheetHasAnimationRow(LPCAnimations[name], 0, inputSprite)
-        dialog:modify({
-            id = "checkEnable"..name,
-            enabled = checkboxEnabled
-        })
-        setAnimationPartsCheckboxesEnabled(name, exportEnabled and checkboxEnabled)
-    end
 
     dialog:show({
         wait = true, autoscrollbars = true,
