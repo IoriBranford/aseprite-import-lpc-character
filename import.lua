@@ -246,7 +246,7 @@ local import = {}
 
 ---@param sheetsprite Sprite
 ---@param args CharacterOptions
-function import.FromSheet(sheetsprite, args)
+local function importFromSheet(sheetsprite, args)
     local sprite = Sprite(args.size, args.size)
     sprite:setPalette(sheetsprite.palettes[1])
     sprite.filename = args.outputFile
@@ -417,7 +417,7 @@ end
 
 ---@param args CharacterOptions
 ---@return Sprite
-function import.FromPack(args)
+local function importFromPack(args)
     local size = args.size
     local sprite = Sprite(size, size)
     sprite.filename = args.outputFile
@@ -444,4 +444,43 @@ function import.FromPack(args)
     error("unknown pack structure")
 end
 
-return import
+local function openInputFile(inputFile)
+    if not inputFile then
+        return false, "No input file"
+    end
+    if not app.fs.isFile(inputFile) then
+        return false, "Not a file: "..inputFile
+    end
+    if app.fs.fileExtension(inputFile) == "png" then
+        local sprite = app.open(inputFile)
+        if sprite then
+            if sprite.height < 64 or sprite.width < 64 then
+                sprite:close()
+                return false, "File too small to hold any frames (min 64x64)."
+            end
+            return sprite
+        end
+        return false, "Not a valid png file"
+    elseif app.fs.fileName(inputFile) == "character.json" then
+        return "character.json"
+    end
+    return false, "Not a png file"
+        .." or a character.json file"
+end
+
+---@param args CharacterOptions
+function ImportLPCCharacter(args)
+    local inputSprite, whyNot = openInputFile(args.inputFile)
+    if inputSprite == "character.json" then
+        local outputSprite = importFromPack(args)
+        outputSprite:saveAs(args.outputFile)
+    elseif inputSprite then
+        ---@cast inputSprite Sprite
+        local outputSprite = importFromSheet(inputSprite, args)
+        inputSprite:close()
+        outputSprite:saveAs(args.outputFile)
+    else
+        ---@cast whyNot string
+        app.alert(whyNot)
+    end
+end

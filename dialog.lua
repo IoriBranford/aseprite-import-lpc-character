@@ -1,31 +1,5 @@
-local import = require "import"
+require "import"
 require "dialog_animations"
-
-local function openInputFile(inputFile)
-    if not inputFile then
-        return false, "No input file"
-    end
-    if not app.fs.isFile(inputFile) then
-        return false, "Not a file: "..inputFile
-    end
-    if app.fs.fileExtension(inputFile) == "png" then
-        local sprite = app.open(inputFile)
-        if sprite then
-            if sprite.height < 64 or sprite.width < 64 then
-                sprite:close()
-                return false, "File too small to hold any frames (min 64x64)."
-            end
-            return sprite
-        else
-            return false, "Not a valid png file"
-        end
-    elseif app.fs.fileName(inputFile) == "character.json" then
-        return "character.json"
-    else
-        return false, "Not a png file"
-            .." or a character.json file"
-    end
-end
 
 ---comment
 ---@param args CharacterOptions
@@ -142,17 +116,7 @@ function ImportLPCCharacterDialog(args)
         text = "Import",
         enabled = (args.inputFile or "") ~= "" and (args.outputFile or "") ~= "",
         onclick = function()
-            local inputSprite, whyNot = openInputFile(args.inputFile)
-            if inputSprite == "character.json" then
-                local outputSprite = import.FromPack(args)
-                outputSprite:saveAs(args.outputFile)
-            elseif inputSprite then
-                local outputSprite = import.FromSheet(inputSprite, args)
-                inputSprite:close()
-                outputSprite:saveAs(args.outputFile)
-            else
-                app.alert(whyNot)
-            end
+            ImportLPCCharacter(args)
             dialog:close()
         end
     })
