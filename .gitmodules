@@ -1,0 +1,3 @@
+[submodule "aseprite-api"]
+	path = aseprite-api
+	url = https://github.com/IoriBranford/aseprite-api
