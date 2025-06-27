@@ -1,0 +1,39 @@
+#!/bin/sh
+
+usage() {
+    echo "Usage:"
+    echo "lpc2ase"
+    echo "  -i inputpath   LPC spritesheet file, sprite pack directory,"
+    echo "                 or sprite pack character.json to convert to ase"
+    echo "  -c csvfile     save animation options to a csv file"
+    echo "  -a csvfile     load csv file saved with saveanims"
+    echo "  -o outputfile  defaults to inputpath with extension replaced by .ase"
+    echo "  -s 64|128|192  defaults to 64, loadanims can override"
+    echo "  -t #           in milliseconds, defaults to 100"
+    echo "  -h             show this help only"
+    echo "Requires one of: -i, -c, -a"
+}
+
+if [ -z "$*" ]
+then
+    usage
+    exit 2
+fi
+
+args=
+
+while getopts i:o:s:t:a:c: arg
+do
+    case $arg in
+    i)  args="$args --script-param convert=$OPTARG";;
+    o)  args="$args --script-param output=$OPTARG";;
+    s)  args="$args --script-param framesize=$OPTARG";;
+    t)  args="$args --script-param frametime=$OPTARG";;
+    a)  args="$args --script-param loadanims=$OPTARG";;
+    c)  args="$args --script-param saveanims=$OPTARG";;
+    ?)  usage
+        exit 2;;
+    esac
+done
+
+aseprite -b $args --script cli.lua
