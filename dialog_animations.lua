@@ -177,15 +177,8 @@ function ImportAnimationsDialog(args)
         end
     end
 
-    for _, name in ipairs(LPCAnimations) do
-        local exportEnabled = args.animations[name].enabled
-        setAnimationExportEnabled(name, exportEnabled)
-        local checkboxEnabled = true --import.sheetHasAnimationRow(LPCAnimations[name], 0, inputSprite)
-        dialog:modify({
-            id = "checkEnable"..name,
-            enabled = checkboxEnabled
-        })
-        setAnimationPartsCheckboxesEnabled(name, exportEnabled and checkboxEnabled)
+    for name, animOptions in pairs(args.animations) do
+        setAnimationExportEnabled(name, animOptions.enabled)
     end
 
     dialog:show {wait = true, autoscrollbars = true}
