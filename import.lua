@@ -1,4 +1,5 @@
 require "lpc"
+local zzlib = require "zzlib"
 
 ---@param n integer
 ---@param toSprite Sprite
@@ -468,8 +469,48 @@ local function openInputFile(inputFile)
         .." or a character.json file"
 end
 
+local function unzipPack(zipPath)
+    local zipFile, zipErr = io.open(zipPath,"rb")
+    if not zipFile then
+        return nil, zipErr
+    end
+
+    local zipContent = zipFile:read("*a")
+    zipFile:close()
+
+    local outDir = app.fs.filePathAndTitle(zipPath)
+    app.fs.makeDirectory(outDir)
+
+    for _,path,offset,size,packed,crc in zzlib.files(zipContent) do
+        local fileContent = packed and zzlib.unzip(zipContent,offset,crc)
+            or zipContent:sub(offset,offset+size-1)
+
+        path = app.fs.joinPath(outDir, path)
+        -- print(path)
+        if path:sub(-1) == "/" then
+            app.fs.makeAllDirectories(app.fs.filePath(path))
+        else
+            local file, fileErr = io.open(path, "w")
+            if file then
+                file:write(fileContent)
+                file:close()
+            else
+                return nil, fileErr
+            end
+        end
+    end
+    return outDir
+end
+
 ---@param args CharacterOptions
 function ImportLPCCharacter(args)
+    if app.fs.fileExtension(args.inputFile) == "zip" then
+        local outDir, err = unzipPack(args.inputFile)
+        if not outDir then
+            return nil, err
+        end
+        args.inputFile = outDir
+    end
     if app.fs.isDirectory(args.inputFile) then
         args.inputFile = app.fs.joinPath(args.inputFile, "character.json")
     end
