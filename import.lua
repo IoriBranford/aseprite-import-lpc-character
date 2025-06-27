@@ -470,8 +470,12 @@ end
 
 ---@param args CharacterOptions
 function ImportLPCCharacter(args)
+    if app.fs.isDirectory(args.inputFile) then
+        args.inputFile = app.fs.joinPath(args.inputFile, "character.json")
+    end
     local inputSprite, whyNot = openInputFile(args.inputFile)
-    if inputSprite == "character.json" then
+    if type(inputSprite) == "string"
+    and app.fs.fileName(inputSprite) == "character.json" then
         local outputSprite = importFromPack(args)
         outputSprite:saveAs(args.outputFile)
     elseif inputSprite then
