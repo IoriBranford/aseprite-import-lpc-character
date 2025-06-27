@@ -38,7 +38,8 @@ end
 
 function CharacterOptions:resetAnimationOptions(animsEnabled)
     animsEnabled = animsEnabled ~= false
-    local allAnimOptions = self.animations
+    local allAnimOptions = self.animations or {}
+    self.animations = allAnimOptions
     for _, name in ipairs(LPCAnimations) do
         local animOptions = allAnimOptions[name] or {}
         allAnimOptions[name] = animOptions
