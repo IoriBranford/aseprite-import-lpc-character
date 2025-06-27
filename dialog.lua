@@ -75,7 +75,7 @@ function ImportLPCCharacterDialog(args)
                 return
             end
 
-            local ok, err = args:newAnimationOptionsCsv(path)
+            local ok, err = args:saveAnimationOptionsCsv(path)
             if ok then
                 -- TODO open folder or file in system app
                 -- app.command.OpenBrowser({filename = fileName})

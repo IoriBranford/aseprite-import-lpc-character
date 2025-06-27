@@ -69,16 +69,19 @@ function CharacterOptions:setGlobalFrameTime(globalframetime)
     end
 end
 
-function CharacterOptions:newAnimationOptionsCsv(csvFileName)
+function CharacterOptions:saveAnimationOptionsCsv(csvFileName)
     local csvFile, err = io.open(csvFileName, "w")
     if not csvFile then
         return false, err
     end
 
     csvFile:write("id,enabled,rename,frametime\n")
+    local allAnimOptions = self.animations
     for _, name in ipairs(LPCAnimations) do
+        local animOptions= allAnimOptions[name]
         local row = string.format("%s,%s,%s,%s\n",
-            name, true, name, DefaultFrameTime)
+            name, animOptions.enabled,
+            animOptions.rename, animOptions.frametime)
         csvFile:write(row)
 
         local animation = LPCAnimations[name]
@@ -87,8 +90,10 @@ function CharacterOptions:newAnimationOptionsCsv(csvFileName)
             for _, part in ipairs(parts) do
                 local partname = name..part
 
+                local partOptions= allAnimOptions[partname]
                 local partrow = string.format("%s,%s,%s,%s\n",
-                    partname, true, partname, "n/a")
+                    partname, partOptions.enabled,
+                    partOptions.rename, "n/a")
                 csvFile:write(partrow)
             end
         end
