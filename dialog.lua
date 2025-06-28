@@ -19,7 +19,7 @@ function ImportLPCCharacterDialog(args)
         label = "Input",
         filename = args.inputFile,
         filetypes = {
-            "png", "json"
+            "png", "json", "zip"
         },
         open = true,
         save = false,
