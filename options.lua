@@ -17,35 +17,30 @@ AnimationOptions.__index = AnimationOptions
 local CharacterOptions = {}
 CharacterOptions.__index = CharacterOptions
 
+local DefaultSize = 64
 local DefaultFrameTime = 100
 
 ---@return CharacterOptions options
 function CharacterOptions.New(animsEnabled)
     local options = CharacterOptions.Init({})
-    options:reset(animsEnabled)
+    options:resetAnimationOptions(animsEnabled)
     return options
 end
 
+---@param options CharacterOptions
 function CharacterOptions.Init(options)
-    return setmetatable(options, CharacterOptions)
-end
+    setmetatable(options, CharacterOptions)
+    options.size = options.size or DefaultSize
+    options.globalframetime = options.globalframetime or DefaultFrameTime
 
-function CharacterOptions:reset(animsEnabled)
-    self.globalframetime = DefaultFrameTime
-    self.size = 64
-    self:resetAnimationOptions(animsEnabled)
-end
-
-function CharacterOptions:resetAnimationOptions(animsEnabled)
-    animsEnabled = animsEnabled ~= false
-    local allAnimOptions = self.animations or {}
-    self.animations = allAnimOptions
+    local allAnimOptions = options.animations or {}
+    options.animations = allAnimOptions
     for _, name in ipairs(LPCAnimations) do
         local animOptions = allAnimOptions[name] or {}
         allAnimOptions[name] = animOptions
-        animOptions.enabled = animsEnabled
-        animOptions.rename = name
-        animOptions.frametime = DefaultFrameTime
+        animOptions.enabled = animOptions.enabled or true
+        animOptions.rename = animOptions.rename or name
+        animOptions.frametime = animOptions.frametime or DefaultFrameTime
 
         local animation = LPCAnimations[name]
         local parts = animation.parts
@@ -54,10 +49,28 @@ function CharacterOptions:resetAnimationOptions(animsEnabled)
                 local partname = name..part
                 local partOptions = allAnimOptions[partname] or {}
                 allAnimOptions[partname] = partOptions
-                partOptions.enabled = animsEnabled
-                partOptions.rename = partname
+                partOptions.enabled = partOptions.enabled or true
+                partOptions.rename = partOptions.rename or partname
+                partOptions.frametime = nil
             end
         end
+    end
+
+    return options
+end
+
+function CharacterOptions:reset(animsEnabled)
+    self.globalframetime = DefaultFrameTime
+    self.size = DefaultSize
+    self:resetAnimationOptions(animsEnabled)
+end
+
+function CharacterOptions:resetAnimationOptions(animsEnabled)
+    animsEnabled = animsEnabled ~= false
+    for name, animOptions in pairs(self.animations) do
+        animOptions.enabled = animsEnabled
+        animOptions.rename = name
+        animOptions.frametime = animOptions.frametime and DefaultFrameTime
     end
 end
 
