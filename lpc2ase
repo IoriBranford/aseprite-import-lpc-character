@@ -36,4 +36,5 @@ do
     esac
 done
 
-aseprite -b $args --script cli.lua
+ASEPRITE=${ASEPRITE:=aseprite}
+$ASEPRITE -b $args --script cli.lua
