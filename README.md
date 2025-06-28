@@ -18,6 +18,8 @@ https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generato
 
 Download and install the extension from [Releases](https://github.com/ioribranford/aseprite-import-lpc-character/releases)
 
+Or you may clone this repo directly to your Aseprite extensions directory.
+
 ## GUI Use
 
 In the File > Import... menu
