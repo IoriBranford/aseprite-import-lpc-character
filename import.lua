@@ -407,6 +407,7 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
                     gatherPaletteColors(paletteColors, animSprite)
                     animSprite:close()
                     withTags = false
+                    app.frame = f1
                 end
             end
             f1 = #sprite.frames
