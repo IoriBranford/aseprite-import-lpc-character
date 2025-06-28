@@ -14,6 +14,8 @@ https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generato
   - Include each animation or not
   - Set each animation name and speed
 
+![](https://i.imgur.com/xYnrb4M.gif)
+
 ## Install
 
 Download and install the extension from [Releases](https://github.com/ioribranford/aseprite-import-lpc-character/releases)
