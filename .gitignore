@@ -1,2 +1,9 @@
 __info.json
 __pref.lua
+*.png
+*.zip
+*.json
+*.csv
+*.txt
+*.ase
+*.aseprite-extension
