@@ -14,6 +14,10 @@ function ImportLPCCharacterDialog(args)
         })
     end
 
+    dialog:label {
+        text = "Supports ZIP file, character.json, or PNG sheet",
+    }
+
     dialog:file({
         id = "fileInput",
         label = "Input",
@@ -32,6 +36,7 @@ function ImportLPCCharacterDialog(args)
             end
         end
     })
+
     dialog:file({
         id = "fileOutput",
         label = "Output",
@@ -62,34 +67,8 @@ function ImportLPCCharacterDialog(args)
     })
 
     dialog:file {
-        id = "fileNewAnimationCsv",
-        title = "Create new animation CSV",
-        label = "New animation CSV",
-        save = true,
-        filetypes = {"csv"},
-        onchange = function (t)
-            local path = dialog.data.fileNewAnimationCsv
-            ---@cast path string
-            if app.fs.isDirectory(path)
-            or not app.fs.isDirectory(app.fs.filePath(path)) then
-                return
-            end
-
-            local ok, err = args:saveAnimationOptionsCsv(path)
-            if ok then
-                -- TODO open folder or file in system app
-                -- app.command.OpenBrowser({filename = fileName})
-                -- app.command.OpenInFolder()
-                -- app.command.OpenWithApp()
-            else
-                print(err)
-            end
-        end
-    }
-
-    dialog:file {
         id = "fileLoadAnimationCsv",
-        title = "Load from CSV",
+        title = "Load animation settings from CSV",
         label = "Load animation CSV",
         filename = args.animationCsvFile,
         filetypes = {"csv"},
