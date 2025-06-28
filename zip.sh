@@ -1,3 +1,3 @@
 #!/bin/sh
 
-zip lpc2ase.aseprite-extension lpc *.lua README.md -x __*.lua
+zip import-lpc-character.aseprite-extension README.md lpc *.lua -x __pref.lua
