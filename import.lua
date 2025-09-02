@@ -505,17 +505,18 @@ end
 
 ---@param args CharacterOptions
 function ImportLPCCharacter(args)
-    if app.fs.fileExtension(args.inputFile) == "zip" then
-        local outDir, err = unzipPack(args.inputFile)
+    local inputFile = args.inputFile
+    if app.fs.fileExtension(inputFile) == "zip" then
+        local outDir, err = unzipPack(inputFile)
         if not outDir then
             return nil, err
         end
-        args.inputFile = outDir
+        inputFile = outDir
     end
-    if app.fs.isDirectory(args.inputFile) then
-        args.inputFile = app.fs.joinPath(args.inputFile, "character.json")
+    if app.fs.isDirectory(inputFile) then
+        inputFile = app.fs.joinPath(inputFile, "character.json")
     end
-    local inputSprite, whyNot = openInputFile(args.inputFile)
+    local inputSprite, whyNot = openInputFile(inputFile)
     if type(inputSprite) == "string"
     and app.fs.fileName(inputSprite) == "character.json" then
         local outputSprite = importFromPack(args)
