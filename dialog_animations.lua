@@ -103,6 +103,53 @@ function ImportAnimationsDialog(args)
 
     dialog:separator { text = "All animations" }
 
+    dialog:file {
+        id = "fileLoadAnimationCsv",
+        title = "Load CSV",
+        label = "Load CSV",
+        filename = args.animationCsvFile,
+        filetypes = {"csv"},
+        open = true,
+        onchange = function ()
+            local path = dialog.data.fileLoadAnimationCsv
+            ---@cast path string
+            if app.fs.isFile(path) then
+                args:loadAnimationOptionsCsv(path)
+                args.animationCsvFile = path
+            end
+            dialog:modify {
+                id = "fileLoadAnimationCsv",
+                filename = nil
+            }
+        end
+    }
+
+    dialog:file {
+        id = "fileSaveAnimationCsv",
+        title = "Save CSV",
+        label = "Save CSV",
+        save = true,
+        filetypes = {"csv"},
+        onchange = function (t)
+            local path = dialog.data.fileSaveAnimationCsv
+            ---@cast path string
+            if app.fs.isDirectory(path)
+            or not app.fs.isDirectory(app.fs.filePath(path)) then
+                return
+            end
+
+            local ok, err = args:saveAnimationOptionsCsv(path)
+            if ok then
+                -- TODO open folder or file in system app
+                -- app.command.OpenBrowser({filename = fileName})
+                -- app.command.OpenInFolder()
+                -- app.command.OpenWithApp()
+            else
+                print(err)
+            end
+        end
+    }
+
     dialog:button {
         label = "Import",
         text = "All",
