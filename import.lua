@@ -1,5 +1,6 @@
 require "lpc"
 local zzlib = require "zzlib"
+local Metadata = require "metadata"
 
 ---@param n integer
 ---@param toSprite Sprite
@@ -517,15 +518,25 @@ function ImportLPCCharacter(args)
         inputFile = app.fs.joinPath(inputFile, "character.json")
     end
     local inputSprite, whyNot = openInputFile(inputFile)
+    local outputSprite
     if type(inputSprite) == "string"
     and app.fs.fileName(inputSprite) == "character.json" then
-        local outputSprite = importFromPack(args)
-        outputSprite:saveAs(args.outputFile)
-        return outputSprite
+        outputSprite = importFromPack(args)
     elseif inputSprite then
         ---@cast inputSprite Sprite
-        local outputSprite = importFromSheet(inputSprite, args)
+        outputSprite = importFromSheet(inputSprite, args)
         inputSprite:close()
+    end
+    if outputSprite then
+        local metadataFile = args.metadataFile or ""
+        if metadataFile ~= "" then
+            local meta, err = Metadata.New(metadataFile)
+            if meta then
+                Metadata.apply(meta, outputSprite)
+            else
+                print(err)
+            end
+        end
         outputSprite:saveAs(args.outputFile)
         return outputSprite
     end
