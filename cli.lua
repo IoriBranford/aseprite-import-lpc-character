@@ -11,6 +11,7 @@ local options = Options.New(true)
 ---@field frametime string?
 ---@field loadanims string?
 ---@field saveanims string?
+---@field meta string?
 
 local params = app.params
 ---@cast params CLIParams
@@ -25,6 +26,7 @@ then
     print("  --script-param saveanims=csvfile         save animation options to a csv file")
     print("  --script-param loadanims=csvfile         load csv file saved with saveanims")
     print("  --script-param output=outputfile         defaults to inputpath with extension replaced by .ase")
+    print("  --script-param meta=jsonfile             optional json file with additional metadata (slices etc)")
     print("  --script-param framesize=64|128|192      defaults to 64, loadanims can override")
     print("  --script-param frametime=#               in milliseconds, defaults to 100")
     print("  --script-param help                      show this help only")
@@ -64,6 +66,8 @@ if params.saveanims then
         print(saveAnimsError)
     end
 end
+
+options.metadataFile = params.meta or ""
 
 if params.convert then
     options.inputFile = params.convert
