@@ -51,9 +51,10 @@ function Metadata.New(path)
     end
     local content = file:read("a")
     file:close()
-    return json.decode(content)
+    return json.decode(content).meta
 end
 
+---@param meta Metadata
 ---@param sprite Sprite
 function Metadata.apply(meta, sprite)
     local AniDirMap = {
