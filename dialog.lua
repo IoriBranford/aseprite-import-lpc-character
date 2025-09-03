@@ -20,7 +20,7 @@ function ImportLPCCharacterDialog(args)
 
     dialog:file({
         id = "fileInput",
-        label = "Input",
+        label = "Images",
         filename = args.inputFile,
         filetypes = {
             "png", "json", "zip"
@@ -55,6 +55,30 @@ function ImportLPCCharacterDialog(args)
             end
         end
     })
+
+    dialog:file({
+        id = "fileMetaInput",
+        label = "Metadata",
+        filename = args.metadataFile,
+        filetypes = {
+            "json"
+        },
+        open = true,
+        save = false,
+        onchange = function()
+            args.metadataFile = dialog.data.fileMetaInput
+        end
+    })
+
+    dialog:button {
+        text = "Clear metadata path",
+        onclick = function()
+            dialog:modify {
+                id = "fileMetaInput",
+                filename = ""
+            }
+        end
+    }
 
     dialog:combobox({
         id = "comboboxSpriteSize",
