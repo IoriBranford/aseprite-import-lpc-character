@@ -24,6 +24,7 @@ local Metadata = {}
 ---@class SliceMetadata
 ---@field name string
 ---@field keys SliceKeyMetadata[]?
+---@field data string?
 
 ---@class SliceKeyMetadata
 ---@field frame integer
@@ -74,6 +75,9 @@ function Metadata.apply(meta, sprite)
         for _, sliceMeta in ipairs(meta.slices) do
             local slice = sprite:newSlice()
             slice.name = sliceMeta.name
+            if sliceMeta.data then
+                slice.data = sliceMeta.data
+            end
             for _, key in ipairs(sliceMeta.keys) do
                 app.frame = key.frame
                 local bounds, center, pivot = key.bounds, key.center, key.pivot
