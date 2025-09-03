@@ -8,6 +8,7 @@ usage() {
     echo "  -c csvfile     save animation options to a csv file"
     echo "  -a csvfile     load csv file saved with saveanims"
     echo "  -o outputfile  defaults to inputpath with extension replaced by .ase"
+    echo "  -m jsonfile    optional json file with additional metadata (slices etc)"
     echo "  -s 64|128|192  defaults to 64, loadanims can override"
     echo "  -t #           in milliseconds, defaults to 100"
     echo "  -h             show this help only"
@@ -22,7 +23,7 @@ fi
 
 args=
 
-while getopts i:o:s:t:a:c: arg
+while getopts i:o:s:t:a:c:m: arg
 do
     case $arg in
     i)  args="$args --script-param convert=$OPTARG";;
@@ -31,6 +32,7 @@ do
     t)  args="$args --script-param frametime=$OPTARG";;
     a)  args="$args --script-param loadanims=$OPTARG";;
     c)  args="$args --script-param saveanims=$OPTARG";;
+    m)  args="$args --script-param meta=$OPTARG";;
     ?)  usage
         exit 2;;
     esac
