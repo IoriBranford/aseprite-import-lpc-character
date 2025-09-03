@@ -19,7 +19,7 @@ local Metadata = {}
 ---@field to integer
 ---@field direction "forward"|"reverse"|"pingpong"|"pingpong_reverse"
 ---@field repeat integer|0
----TODO @field userdata
+---@field data string?
 
 ---@class SliceMetadata
 ---@field name string
@@ -53,16 +53,19 @@ function Metadata.apply(meta, sprite)
     }
     if meta.frameTags then
         for _, tagMeta in ipairs(meta.frameTags) do
-            if tagMeta.from and tagMeta.to then
-                local tag = sprite:newTag(tagMeta.from, tagMeta.to)
-                tag.name = tagMeta.name
-                local dir = tagMeta.direction
-                    and AniDirMap[tagMeta.direction]
-                if dir then
-                    tag.aniDir = dir
-                end
-                if tagMeta["repeat"] then
-                    tag.repeats = tagMeta["repeat"]
+            for _, tag in ipairs(sprite.tags) do
+                if tag.name == tagMeta.name then
+                    if tagMeta.data then
+                        tag.data = tagMeta.data
+                    end
+                    local dir = tagMeta.direction
+                        and AniDirMap[tagMeta.direction]
+                    if dir then
+                        tag.aniDir = dir
+                    end
+                    if tagMeta["repeat"] then
+                        tag.repeats = tagMeta["repeat"]
+                    end
                 end
             end
         end
