@@ -10,6 +10,7 @@
 
 ---@class Metadata
 ---@field frameTags TagMetadata[]?
+---@field layers LayerMetadata[]?
 ---@field slices SliceMetadata[]?
 local Metadata = {}
 
@@ -19,6 +20,15 @@ local Metadata = {}
 ---@field to integer
 ---@field direction "forward"|"reverse"|"pingpong"|"pingpong_reverse"
 ---@field repeat integer|0
+---@field data string?
+
+---@class LayerMetadata
+---@field name string
+---@field data string?
+---@field cels CelMetadata[]?
+
+---@class CelMetadata
+---@field frame integer
 ---@field data string?
 
 ---@class SliceMetadata
@@ -87,6 +97,36 @@ function Metadata.apply(meta, sprite)
                 end
                 if pivot then
                     slice.pivot = Point(pivot.x, pivot.y)
+                end
+            end
+        end
+    end
+    if meta.layers then
+        for _, layerMeta in ipairs(meta.layers) do
+            local celsMeta ---@type {[integer]:CelMetadata}?
+            if layerMeta.cels then
+                celsMeta = {}
+                for _, celMeta in ipairs(layerMeta.cels) do
+                    celsMeta[celMeta.frame] = celMeta
+                end
+            end
+
+            for _, layer in ipairs(sprite.layers) do
+                if layer.name == layerMeta.name then
+                    if layerMeta.data then
+                        layer.data = layerMeta.data
+                    end
+                    if celsMeta then
+                        local cels = layer.cels
+                        for f, celMeta in pairs(celsMeta) do
+                            local cel = cels[f+1]
+                            if cel then
+                                if celMeta.data then
+                                    cel.data = celMeta.data
+                                end
+                            end
+                        end
+                    end
                 end
             end
         end
