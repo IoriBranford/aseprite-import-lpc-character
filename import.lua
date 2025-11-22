@@ -340,6 +340,18 @@ local function importItemSheets(sprite, itemsdir, args)
     return sprite, extrasprite
 end
 
+local function trimTrailingEmptyFrames(sprite, f1, f2)
+    for f = f2, f1, -1 do
+        for _, layer in ipairs(sprite.layers) do
+            local cel = layer:cel(f)
+            if cel and not cel.image:isEmpty() then
+                return
+            end
+        end
+        sprite:deleteFrame(f)
+    end
+end
+
 ---@param sprite Sprite
 ---@param packdir string
 ---@param animationSet AnimationSet
@@ -414,6 +426,13 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
             f1 = #sprite.frames
         end
     end
+
+    for _, tag in ipairs(sprite.tags) do
+        trimTrailingEmptyFrames(sprite,
+            tag.fromFrame.frameNumber,
+            tag.toFrame.frameNumber)
+    end
+
     usePaletteColors(sprite, paletteColors)
     return sprite
 end
