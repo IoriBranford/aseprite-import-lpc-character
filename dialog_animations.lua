@@ -207,32 +207,6 @@ function ImportAnimationsDialog(args)
         end
     })
 
-    dialog:file {
-        id = "fileSaveCsv",
-        title = "Save animation settings to CSV",
-        label = "Save CSV",
-        save = true,
-        filetypes = {"csv"},
-        onchange = function (t)
-            local path = dialog.data.fileSaveCsv
-            ---@cast path string
-            if app.fs.isDirectory(path)
-            or not app.fs.isDirectory(app.fs.filePath(path)) then
-                return
-            end
-
-            local ok, err = args:saveAnimationOptionsCsv(path)
-            if ok then
-                -- TODO open folder or file in system app
-                -- app.command.OpenBrowser({filename = fileName})
-                -- app.command.OpenInFolder()
-                -- app.command.OpenWithApp()
-            else
-                print(err)
-            end
-        end
-    }
-
     for _, name in ipairs(LPCAnimations) do
         dialog:separator({text = name})
         animationCheckbox(name)
