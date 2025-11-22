@@ -119,17 +119,6 @@ local function processAnimationSprite(animSprite, animation, targetFrameSize, wi
     end
 end
 
----@param animFile string
----@param animation LPCAnimation
----@param targetFrameSize integer
----@return Sprite?
-local function animationSpriteFromFile(animFile, animation, targetFrameSize, withTags)
-    local animSprite = app.fs.isFile(animFile) and app.open(animFile)
-    if not animSprite then return end
-    processAnimationSprite(animSprite, animation, targetFrameSize, withTags)
-    return animSprite
-end
-
 ---@param sheet Image
 ---@param rect RectangleArg
 ---@param animation LPCAnimation
@@ -139,6 +128,26 @@ local function animationSpriteFromSheetRect(sheet, rect, animation, targetFrameS
     local animImage = Image(sheet, Rectangle(rect))
     local animSprite = Sprite(animImage.width, animImage.height)
     animSprite:newCel(animSprite.layers[1], 1, animImage)
+    processAnimationSprite(animSprite, animation, targetFrameSize, withTags)
+    return animSprite
+end
+
+---@param animFile string
+---@param animation LPCAnimation
+---@param targetFrameSize integer
+---@return Sprite?
+local function animationSpriteFromFile(animFile, animation, targetFrameSize, withTags)
+    local animSprite = app.fs.isFile(animFile) and app.open(animFile)
+    if not animSprite then return end
+
+    local srcrect = animation.rect
+    if srcrect then
+        local rect = {x = 0, y = 0, width = srcrect.width, height = srcrect.height}
+        local sheet = Image(animSprite)
+        animSprite:close()
+        return animationSpriteFromSheetRect(sheet, rect, animation, targetFrameSize, withTags)
+    end
+
     processAnimationSprite(animSprite, animation, targetFrameSize, withTags)
     return animSprite
 end
@@ -425,12 +434,6 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
             end
             f1 = #sprite.frames
         end
-    end
-
-    for _, tag in ipairs(sprite.tags) do
-        trimTrailingEmptyFrames(sprite,
-            tag.fromFrame.frameNumber,
-            tag.toFrame.frameNumber)
     end
 
     usePaletteColors(sprite, paletteColors)
