@@ -1,2 +1,2 @@
-require "lpc.animations"
 require "lpc.spritesheet"
+require "lpc.animations"

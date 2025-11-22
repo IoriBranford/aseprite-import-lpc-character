@@ -1,5 +1,6 @@
 ---@class LPCAnimation
 ---@field s 64|128|192?
+---@field rect Rectangle?
 ---@field folder string?
 ---@field parts AnimationParts?
 
@@ -158,12 +159,14 @@ for _, name in ipairs(StandardAnimations) do
     StandardAnimations[name] = anim
     anim.s = StandardFrameSize
     anim.folder = "standard"
+    anim.rect = StandardSheetRects[name]
     LPCAnimations[#LPCAnimations+1] = name
     LPCAnimations[name] = anim
 end
 for _, name in ipairs(CustomAnimations) do
     local anim = CustomAnimations[name]
     anim.folder = "custom"
+    anim.rect = CustomSheetRects[name]
     LPCAnimations[#LPCAnimations+1] = name
     LPCAnimations[name] = anim
 end

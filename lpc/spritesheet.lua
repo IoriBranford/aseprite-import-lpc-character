@@ -21,3 +21,31 @@ StandardSheetRects = {
     backslash = { x = 0, y = 2944, width = 832, height = 256 },
     halfslash = { x = 0, y = 3200, width = 384, height = 256 },
 }
+
+CustomSheetRects = {
+    "wheelchair",
+    "tool_rod",
+    "slash_128",
+    "backslash_128",
+    "halfslash_128",
+    "thrust_oversize",
+    "slash_oversize",
+    "walk_128",
+    "thrust_128",
+    "slash_reverse_oversize",
+    "whip_oversize",
+    "tool_whip",
+
+    wheelchair = {x = 0, y = 0, width = 64*2, height = 64*4},
+    tool_rod = {x = 0, y = 0, width = 128*13, height = 128*4},
+    slash_128 = {x = 0, y = 0, width = 128*6, height = 128*4},
+    backslash_128 = {x = 0, y = 0, width = 128*13, height = 128*4},
+    halfslash_128 = {x = 0, y = 0, width = 128*6, height = 128*4},
+    thrust_oversize = {x = 0, y = 0, width = 192*8, height = 192*4},
+    slash_oversize = {x = 0, y = 0, width = 192*6, height = 192*4},
+    walk_128 = {x = 0, y = 0, width = 128*9, height = 128*4},
+    thrust_128 = {x = 0, y = 0, width = 128*8, height = 128*4},
+    slash_reverse_oversize = {x = 0, y = 0, width = 192*6, height = 192*4},
+    whip_oversize = {x = 0, y = 0, width = 192*8, height = 192*4},
+    tool_whip = {x = 0, y = 0, width = 192*8, height = 192*4},
+}
