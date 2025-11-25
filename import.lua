@@ -539,6 +539,8 @@ function ImportLPCCharacter(args)
     if app.fs.isDirectory(inputFile) then
         inputFile = app.fs.joinPath(inputFile, "character.json")
     end
+    args.inputFile = inputFile
+
     local inputSprite, whyNot = openInputFile(inputFile)
     local outputSprite
     if type(inputSprite) == "string"
