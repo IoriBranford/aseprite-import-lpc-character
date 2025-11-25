@@ -13,6 +13,10 @@ https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generato
 - Detailed animation config in GUI or a CSV file
   - Include each animation or not
   - Set each animation name and speed
+- Import metadata from previously exported Aseprite JSON
+  - Slices
+  - User data for layers, cels, tags
+  - Tag directions and repeat counts
 
 ![](https://i.imgur.com/xYnrb4M.gif)
 
@@ -35,18 +39,18 @@ In the File > Import... menu
 - **Output**: select save path of the output sprite
 - **Sprite size**: 64, 128, or 192
   - If your image pack is split by animation, or by animation and item, the size automatically grows as needed during the import.
-- **Load animation CSV**: loads animation settings from a CSV
-  - You can change them afterward in Animation settings...
+- **Metadata**: select a previously exported Aseprite JSON file, from which to import metadata
+- **Clear metadata path** to forget previously selected metadata file
 - **Animation settings...**: Opens the detailed animation setting window
 - **Import** - starts the import, requires an input and an output
 
 ### Animation Settings Window
 
-The animations are listed in the order they appear in ULPCCG. You can set which of the animations you want in the sprite, and their names and frame durations. 
+The animations are listed in the order they appear in ULPCCG. You can set which of the animations you want in the sprite, and their names and frame durations. You can also set all animations' frame durations at once.
 
-Some are sub-animations using some frames of their parent animations. They cannot have different frame durations from their parents at this time. You can exclude these sub-animations with **No sub**.
+Some animations are sub-animations using some frames of their parent animations. They cannot have different frame durations from their parents at this time. You can exclude these sub-animations with the **No sub** button.
 
-You can also set all animations' frame durations at once, and save these settings with **Save CSV**.
+You can save and load animation settings to/from a CSV file with the **Save CSV** and **Load CSV** buttons.
 
 ## Command-Line Use
 
