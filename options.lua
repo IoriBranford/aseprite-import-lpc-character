@@ -11,7 +11,6 @@ AnimationOptions.__index = AnimationOptions
 ---@field inputFile string
 ---@field outputFile string
 ---@field metadataFile string
----@field animationCsvFile string
 ---@field globalframetime number in msecs
 ---@field size 64|128|192
 ---@field animations {[string]: AnimationOptions}

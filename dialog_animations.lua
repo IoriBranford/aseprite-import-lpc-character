@@ -107,7 +107,6 @@ function ImportAnimationsDialog(args)
         id = "fileLoadAnimationCsv",
         title = "Load CSV",
         label = "Load CSV",
-        filename = args.animationCsvFile,
         filetypes = {"csv"},
         open = true,
         onchange = function ()
@@ -115,7 +114,6 @@ function ImportAnimationsDialog(args)
             ---@cast path string
             if app.fs.isFile(path) then
                 args:loadAnimationOptionsCsv(path)
-                args.animationCsvFile = path
             end
             dialog:modify {
                 id = "fileLoadAnimationCsv",

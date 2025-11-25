@@ -49,10 +49,10 @@ if globalframetime then
     options:setGlobalFrameTime(globalframetime)
 end
 
-options.animationCsvFile = params.loadanims
-if options.animationCsvFile then
-    if options:loadAnimationOptionsCsv(options.animationCsvFile) then
-        print("Loaded "..options.animationCsvFile)
+local animFile = params.loadanims
+if animFile then
+    if options:loadAnimationOptionsCsv(animFile) then
+        print("Loaded "..animFile)
     else
         return
     end
