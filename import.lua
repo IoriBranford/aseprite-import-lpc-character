@@ -445,21 +445,13 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
         local animArgs = animationArgs[animName]
         if animArgs.enabled ~= false then
             local animation = animationSet[animName]
+            if 0 < importAnimationItems(sprite, packdir, animation, f1, layerIdxs, paletteColors, animationArgs) then
+                app.frame = f1
 
-            local folder = app.fs.joinPath(packdir, animation.folder, animName)
-            local withTags = true
-
-            for _, file in ipairs(app.fs.listFiles(folder)) do
-                file = app.fs.joinPath(folder, file)
-                local animSprite = animationSpriteFromFile(file, animation, sprite.height, withTags)
-                if animSprite then
-                    local i = layerIdxs[app.fs.fileTitle(file)]
-                    importAnimationSpriteCels(sprite, i, f1, animSprite)
-                    importAnimationSpriteTags(sprite, f1, animSprite, animName, animationArgs)
-                    gatherPaletteColors(paletteColors, animSprite)
-                    animSprite:close()
-                    withTags = false
-                    app.frame = f1
+                local baseName = animation.base
+                local baseAnimation = animationSet[baseName]
+                if baseAnimation then
+                    importAnimationItems(sprite, packdir, baseAnimation, f1, layerIdxs, paletteColors)
                 end
             end
             f1 = #sprite.frames
