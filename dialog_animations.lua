@@ -194,6 +194,21 @@ function ImportAnimationsDialog(args)
         end
     }
 
+    dialog:newrow()
+
+    dialog:button {
+        text = "Reset all names",
+        onclick = function()
+            for name in pairs(args.animations) do
+                args.animations[name].rename = name
+                dialog:modify {
+                    id = "entryRename"..name,
+                    text = name
+                }
+            end
+        end
+    }
+
     dialog:number({
         id = "numberGlobalFrameTime",
         label = "Frame ms",
