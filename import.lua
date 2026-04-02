@@ -391,6 +391,36 @@ end
 
 ---@param sprite Sprite
 ---@param packdir string
+---@param animation LPCAnimation
+---@param f1 integer
+---@param layerIdxs {[string]: integer}
+---@param paletteColors {[string]:boolean}|integer[]
+---@param animationsArgs {[string]: AnimationOptions}?
+local function importAnimationItems(sprite, packdir, animation, f1, layerIdxs, paletteColors, animationsArgs)
+    local animName = animation.name
+    local folder = app.fs.joinPath(packdir, animation.folder, animName)
+    local withTags = animationsArgs ~= nil
+    local numImportedAnimationItems = 0
+    for _, file in ipairs(app.fs.listFiles(folder)) do
+        file = app.fs.joinPath(folder, file)
+        local animSprite = animationSpriteFromFile(file, animation, sprite.height, withTags)
+        if animSprite then
+            numImportedAnimationItems = numImportedAnimationItems + 1
+            local i = layerIdxs[app.fs.fileTitle(file)]
+            importAnimationSpriteCels(sprite, i, f1, animSprite)
+            if animationsArgs then
+                importAnimationSpriteTags(sprite, f1, animSprite, animName, animationsArgs)
+            end
+            gatherPaletteColors(paletteColors, animSprite)
+            animSprite:close()
+            withTags = false
+        end
+    end
+    return numImportedAnimationItems
+end
+
+---@param sprite Sprite
+---@param packdir string
 ---@param animationSet AnimationSet
 ---@param args CharacterOptions
 ---@return Sprite
