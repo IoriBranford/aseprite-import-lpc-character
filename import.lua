@@ -447,12 +447,6 @@ local function importItemAnimations(sprite, packdir, animationSet, args)
             local animation = animationSet[animName]
             if 0 < importAnimationItems(sprite, packdir, animation, f1, layerIdxs, paletteColors, animationArgs) then
                 app.frame = f1
-
-                local baseName = animation.base
-                local baseAnimation = animationSet[baseName]
-                if baseAnimation then
-                    importAnimationItems(sprite, packdir, baseAnimation, f1, layerIdxs, paletteColors)
-                end
             end
             f1 = #sprite.frames
         end
